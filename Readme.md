@@ -1,7 +1,7 @@
 # Личный проект «Кексобукинг» [![Build status][travis-image]][travis-url]
 
 * Студент: [Anatoliy Avramenko](https://up.htmlacademy.ru/javascript/11/user/457229).
-* Наставник: `Неизвестно`.
+* Наставник: [Михаил Косымов](https://htmlacademy.ru/profile/grraoo).
 
 ---
 

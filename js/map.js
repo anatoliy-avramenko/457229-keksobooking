@@ -109,10 +109,16 @@ var pinsSection = document.querySelector('.map__pins');
 
 
 // задать пинам параметры из сгенерированных объектов
+var pinRad = 23px;
+var pinArrowHeight = 18px;
 var createPin = function (entity) {
   var pinElement = pinTemplate.cloneNode(true);
+
+  // базовая точка пина - это центр его окружности, в то время, как пин должен указывать на координаты не своим центром, а концом своей "иголки"
+  // поправка (y - (pinRad + pinArrowHeight)) учитывает расположение базовой точки и как-бы смещает ее на наконечник "иголки"
+  // горизоатальная поправка не требуется, т.к. базовая точка находится на вертикальной оси пина
   pinElement.style.left = (entity.location.x) + 'px';
-  pinElement.style.top = (entity.location.y - 23) + 'px';
+  pinElement.style.top = (entity.location.y - (pinRad + pinArrowHeight)) + 'px';
   pinElement.querySelector('img').setAttribute('src', entity.author.avatar);
   return pinElement;
 };

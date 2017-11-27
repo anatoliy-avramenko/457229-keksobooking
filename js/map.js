@@ -2,6 +2,7 @@
 
 var OFFER_TITLES = ['Большая уютная квартира', 'Маленькая неуютная квартира', 'Огромный прекрасный дворец', 'Маленький ужасный дворец', 'Красивый гостевой домик', 'Некрасивый негостеприимный домик', 'Уютное бунгало далеко от моря', 'Неуютное бунгало по колено в воде'];
 var OFFER_TYPE = ['flat', 'house', 'bungalo'];
+var OFFER_TYPE_RUS = ['Квартира', 'Дом', 'Бунгало'];
 var OFFER_CHECK_TIME = ['12:00', '13:00', '14:00'];
 var OFFER_FEATURES = ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'];
 
@@ -67,7 +68,7 @@ var generateCoordinates = function () {
 
 // сгенерировать массив из 8 объявлений
 var ads = [];
-for (var i = 0; i < 8; i++) {
+for (var n = 0; n < 8; n++) {
   generateCoordinates();
   ads.push({
     'author': {
@@ -103,12 +104,11 @@ document.querySelector('.map').classList.remove('map--faded');
 // темплейт пина с аватаром
 var pinTemplate = document.querySelector('template').content.querySelector('.map__pin');
 
-
 // блок для складывания пинов
 var pinsSection = document.querySelector('.map__pins');
 
 
-// задание пинам параметров из сгенерированных объектов
+// задать пинам параметры из сгенерированных объектов
 var createPin = function (entity) {
   var pinElement = pinTemplate.cloneNode(true);
   pinElement.style.left = (entity.location.x) + 'px';
@@ -116,9 +116,6 @@ var createPin = function (entity) {
   pinElement.querySelector('img').setAttribute('src', entity.author.avatar);
   return pinElement;
 };
-
-console.log(createPin(ads[0]));
-console.log(ads[0].author.avatar);
 
 
 // записать вновь добавленные пины в разметку
@@ -128,4 +125,53 @@ for (var j = 0; j < ads.length; j++) {
 }
 pinsSection.appendChild(fragment);
 
+// -----------------------------------------------------------
+// -----------------------------------------------------------
 
+// перевести тип жилья на русский
+var translateOfferType = function (entity) {
+  for (var i = 0; i < 3; i++) {
+    if (entity.offer.type === OFFER_TYPE[i]) {
+      break;
+    }
+  }
+  return OFFER_TYPE_RUS[i];
+};
+
+
+// вывести <li> для ads.offer.features
+var generateFeaturesMarkup = function (entity) {
+  var featuresMarkup = '';
+  for (var i = 0; i < entity.offer.features.length; i++) {
+    featuresMarkup += ('<li class="feature feature--' + entity.offer.features[i] + '"></li>');
+  }
+  return featuresMarkup;
+};
+
+
+// темплейт пина с аватаром
+var advertTemplate = document.querySelector('template').content.querySelector('.map__card');
+
+// блок для складывания пинов
+var advertSibling = document.querySelector('.map__filters-container');
+var advertParent = document.querySelector('.map');
+
+
+// задать попапу параметры из объекта
+var createAdvert = function (entity) {
+  var advertElement = advertTemplate.cloneNode(true);
+  advertElement.querySelector('h3').textContent = entity.offer.title;
+  advertElement.querySelector('p small').textContent = entity.offer.address;
+  advertElement.querySelector('.popup__price').innerHTML = entity.offer.price + ' &#x20bd;/ночь';
+  advertElement.querySelector('h4').textContent = translateOfferType(entity);
+  advertElement.querySelector('p:nth-of-type(3)').textContent = entity.offer.rooms + ' комнаты для ' + entity.offer.guests + ' гостей';
+  advertElement.querySelector('p:nth-of-type(4)').textContent = 'Заезд после ' + entity.offer.checkin + ', выезд до ' + entity.offer.checkout;
+  advertElement.querySelector('.popup__features').innerHTML = generateFeaturesMarkup(entity);
+  advertElement.querySelector('p:nth-of-type(5)').textContent = entity.offer.description;
+  advertElement.querySelector('.popup__avatar').setAttribute('src', entity.author.avatar);
+  return advertElement;
+};
+
+
+// добавить объявление в разметку
+advertParent.insertBefore(createAdvert(ads[0]), advertSibling);

@@ -95,5 +95,37 @@ for (var i = 0; i < 8; i++) {
   });
 }
 
-console.log(ads);
+// -----------------------------------------------------------
+// -----------------------------------------------------------
+
+document.querySelector('.map').classList.remove('map--faded');
+
+// темплейт пина с аватаром
+var pinTemplate = document.querySelector('template').content.querySelector('.map__pin');
+
+
+// блок для складывания пинов
+var pinsSection = document.querySelector('.map__pins');
+
+
+// задание пинам параметров из сгенерированных объектов
+var createPin = function (entity) {
+  var pinElement = pinTemplate.cloneNode(true);
+  pinElement.style.left = (entity.location.x) + 'px';
+  pinElement.style.top = (entity.location.y - 23) + 'px';
+  pinElement.querySelector('img').setAttribute('src', entity.author.avatar);
+  return pinElement;
+};
+
+console.log(createPin(ads[0]));
+console.log(ads[0].author.avatar);
+
+
+// записать вновь добавленные пины в разметку
+var fragment = document.createDocumentFragment();
+for (var j = 0; j < ads.length; j++) {
+  fragment.appendChild(createPin(ads[j]));
+}
+pinsSection.appendChild(fragment);
+
 

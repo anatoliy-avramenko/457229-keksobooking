@@ -109,8 +109,8 @@ var pinsSection = document.querySelector('.map__pins');
 
 
 // задать пинам параметры из сгенерированных объектов
-var pinRad = 23px;
-var pinArrowHeight = 18px;
+var pinRad = 23;
+var pinArrowHeight = 18;
 var createPin = function (entity) {
   var pinElement = pinTemplate.cloneNode(true);
 

@@ -96,10 +96,10 @@ for (var n = 0; n < 8; n++) {
   });
 }
 
-// -----------------------------------------------------------
-// -----------------------------------------------------------
 
-document.querySelector('.map').classList.remove('map--faded');
+// -----------------------------------------------------------
+// СОЗДАТЬ ПИНЫ
+// -----------------------------------------------------------
 
 // темплейт пина с аватаром
 var pinTemplate = document.querySelector('template').content.querySelector('.map__pin');
@@ -111,27 +111,35 @@ var pinsSection = document.querySelector('.map__pins');
 // задать пинам параметры из сгенерированных объектов
 var pinRad = 23;
 var pinArrowHeight = 18;
-var createPin = function (entity) {
+var createPin = function (array, index) {
   var pinElement = pinTemplate.cloneNode(true);
 
   // базовая точка пина - это центр его окружности, в то время, как пин должен указывать на координаты не своим центром, а концом своей "иголки"
   // поправка (y - (pinRad + pinArrowHeight)) учитывает расположение базовой точки и как-бы смещает ее на наконечник "иголки"
   // горизоатальная поправка не требуется, т.к. базовая точка находится на вертикальной оси пина
-  pinElement.style.left = (entity.location.x) + 'px';
-  pinElement.style.top = (entity.location.y - (pinRad + pinArrowHeight)) + 'px';
-  pinElement.querySelector('img').setAttribute('src', entity.author.avatar);
+  pinElement.style.left = (array[index].location.x) + 'px';
+  pinElement.style.top = (array[index].location.y - (pinRad + pinArrowHeight)) + 'px';
+  pinElement.setAttribute('id', index);
+  pinElement.querySelector('img').setAttribute('src', array[index].author.avatar);
   return pinElement;
 };
 
 
-// записать вновь добавленные пины в разметку
+// записать вновь добавленные пины во fragment
 var fragment = document.createDocumentFragment();
 for (var j = 0; j < ads.length; j++) {
-  fragment.appendChild(createPin(ads[j]));
+  fragment.appendChild(createPin(ads, j));
 }
-pinsSection.appendChild(fragment);
+
+// добавить fragment с пинами в разметку
+var renderPins = function () {
+  pinsSection.appendChild(fragment);
+};
+
+renderPins();
 
 // -----------------------------------------------------------
+// ВЫВЕСТИ КАРТОЧКУ С ОБЪЯВЛЕНИЕМ
 // -----------------------------------------------------------
 
 // перевести тип жилья на русский
@@ -145,7 +153,7 @@ var translateOfferType = function (entity) {
 };
 
 
-// вывести <li> для ads.offer.features
+// вывести списко features в объявление
 var generateFeaturesMarkup = function (entity) {
   var featuresMarkup = '';
   for (var i = 0; i < entity.offer.features.length; i++) {
@@ -160,7 +168,7 @@ var advertTemplate = document.querySelector('template').content.querySelector('.
 
 // блок для складывания пинов
 var advertSibling = document.querySelector('.map__filters-container');
-var advertParent = document.querySelector('.map');
+var map = document.querySelector('.map');
 
 
 // задать попапу параметры из объекта
@@ -180,4 +188,65 @@ var createAdvert = function (entity) {
 
 
 // добавить объявление в разметку
-advertParent.insertBefore(createAdvert(ads[0]), advertSibling);
+var renderAdvert = function (entity) {
+  map.insertBefore(createAdvert(ads[entity]), advertSibling);
+};
+
+
+// ------------------------------------------------------------
+// ОБРАБОТЧИКИ СОБЫТИЙ
+// ------------------------------------------------------------
+
+
+var noticeForm = document.querySelector('.notice__form');
+var mapPinMain = document.querySelector('.map__pin--main');
+var fieldsets = document.querySelectorAll('fieldset');
+var mapPinItem = pinsSection.querySelectorAll('.map__pin');
+
+
+// сделать все инпуты неактивными disabled
+for (var i = 0; i < fieldsets.length; i++) {
+  fieldsets[i].classList.add('disabled');
+}
+
+
+// по событию mouseup - убрать fade с карты
+mapPinMain.addEventListener('mouseup', function () {
+  map.classList.remove('map--faded');
+});
+
+
+// по событию mouseup - делать форму активной
+mapPinMain.addEventListener('mouseup', function () {
+  noticeForm.classList.remove('notice__form--disabled');
+});
+
+
+// по событию mouseup - добавить пины
+mapPinMain.addEventListener('mouseup', function () {
+  renderPins();
+});
+
+
+// получить ID элемента
+var getElementId = function (element) {
+  return element.getAttribute('id');
+};
+
+
+// обработчик на пине
+mapPinItem.forEach(function (el) {
+  el.addEventListener('click', function () {
+
+    // предварительно выключить везде active
+    mapPinItem.forEach(function (elKid) {
+      elKid.classList.remove('map__pin--active');
+    });
+
+    // включить active, запилить объявление
+    el.classList.add('map__pin--active');
+    renderAdvert(getElementId(el));
+  });
+});
+
+

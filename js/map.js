@@ -5,6 +5,8 @@ var OFFER_TYPE = ['flat', 'house', 'bungalo'];
 var OFFER_TYPE_RUS = ['Квартира', 'Дом', 'Бунгало'];
 var OFFER_CHECK_TIME = ['12:00', '13:00', '14:00'];
 var OFFER_FEATURES = ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'];
+var ENTER_KEYCODE = 13;
+var ESC_KEYCODE = 27;
 
 // сгенерировать индексы аватаров
 var avatarIndexes = [];
@@ -237,30 +239,63 @@ mapPinMain.addEventListener('mouseup', function () {
 
   // добавить пины
   renderPins();
-  makePinsClickable();
+  parseAllPins();
 });
 
 
-// обратиться к каждому пину
-var makePinsClickable = function () {
+// ставить обработчики на пины по клику
+var onPinClick = function (pinItem, pinParent) {
+  pinItem.addEventListener('click', function () {
 
-  // переменная-селектор для псевдопинов (созданные из js)
-  var mapPinItem = pinsSection.querySelectorAll('.map__pin');
+    // предварительно выключить везде active
+    modifyClassForEach(pinParent, 'remove', 'map__pin--active');
 
-  mapPinItem.forEach(function (el) {
-
-    // поставить обработчики на пины, исключая большой главный пин (с кексиком)
-    if (!el.classList.contains('map__pin--main')) {
-      el.addEventListener('click', function () {
-
-        // предварительно выключить везде active
-        modifyClassForEach(mapPinItem, 'remove', 'map__pin--active');
-
-        // включить active, запилить объявление
-        el.classList.add('map__pin--active');
-        renderAdvert(getElementId(el));
-      });
-    }
+    // включить active, запилить объявление
+    pinItem.classList.add('map__pin--active');
+    renderAdvert(getElementId(pinItem));
   });
 };
 
+
+
+
+
+// ставить обработчики на пины по нажатию на Enter
+var onPinEnterDown = function (pinItem, pinParent) {
+  if (evt.keyCode === ENTER_KEYCODE) {
+    pinItem.addEventListener('keyDown', function () {
+
+      // предварительно выключить везде active
+      modifyClassForEach(pinParent, 'remove', 'map__pin--active');
+
+      // включить active, запилить объявление
+      pinItem.classList.add('map__pin--active');
+      renderAdvert(getElementId(pinItem));
+    });
+  }
+};
+
+
+
+var mapCard = pinsSection.querySelector('.popup');
+
+var closePopup = function () {
+  mapCard.classList.add('hidden');
+};
+
+
+
+
+
+
+// обратиться к каждому пину
+var parseAllPins = function () {
+  var mapPinItem = pinsSection.querySelectorAll('.map__pin');
+  mapPinItem.forEach(function (el) {
+
+    // исключить большой главный пин (с кексиком)
+    if (!el.classList.contains('map__pin--main')) {
+      onPinClick(el, mapPinItem);
+    }
+  });
+};

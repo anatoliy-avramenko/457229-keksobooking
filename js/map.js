@@ -136,7 +136,6 @@ var renderPins = function () {
   pinsSection.appendChild(fragment);
 };
 
-renderPins();
 
 // -----------------------------------------------------------
 // ВЫВЕСТИ КАРТОЧКУ С ОБЪЯВЛЕНИЕМ
@@ -192,7 +191,6 @@ var renderAdvert = function (entity) {
   map.insertBefore(createAdvert(ads[entity]), advertSibling);
 };
 
-
 // ------------------------------------------------------------
 // ОБРАБОТЧИКИ СОБЫТИЙ
 // ------------------------------------------------------------
@@ -201,31 +199,6 @@ var renderAdvert = function (entity) {
 var noticeForm = document.querySelector('.notice__form');
 var mapPinMain = document.querySelector('.map__pin--main');
 var fieldsets = document.querySelectorAll('fieldset');
-var mapPinItem = pinsSection.querySelectorAll('.map__pin');
-
-
-// сделать все инпуты неактивными disabled
-for (var i = 0; i < fieldsets.length; i++) {
-  fieldsets[i].classList.add('disabled');
-}
-
-
-// по событию mouseup - убрать fade с карты
-mapPinMain.addEventListener('mouseup', function () {
-  map.classList.remove('map--faded');
-});
-
-
-// по событию mouseup - делать форму активной
-mapPinMain.addEventListener('mouseup', function () {
-  noticeForm.classList.remove('notice__form--disabled');
-});
-
-
-// по событию mouseup - добавить пины
-mapPinMain.addEventListener('mouseup', function () {
-  renderPins();
-});
 
 
 // получить ID элемента
@@ -234,19 +207,60 @@ var getElementId = function (element) {
 };
 
 
-// обработчик на пине
-mapPinItem.forEach(function (el) {
-  el.addEventListener('click', function () {
-
-    // предварительно выключить везде active
-    mapPinItem.forEach(function (elKid) {
-      elKid.classList.remove('map__pin--active');
-    });
-
-    // включить active, запилить объявление
-    el.classList.add('map__pin--active');
-    renderAdvert(getElementId(el));
+// добавить или удалить класс у группы элементов, forEach
+var modifyClassForEach = function (elementsArray, mod, className) {
+  elementsArray.forEach(function (el) {
+    if (mod === 'remove') {
+      el.classList.remove(className);
+    } else if (mod === 'add') {
+      el.classList.add(className);
+    }
   });
+};
+
+
+// сделать все инпуты неактивными disabled
+modifyClassForEach(fieldsets, 'add', 'disabled');
+
+
+// обработчик по событию mouseup
+mapPinMain.addEventListener('mouseup', function () {
+
+  // убрать fade
+  map.classList.remove('map--faded');
+
+  // активировать форму
+  noticeForm.classList.remove('notice__form--disabled');
+
+  // убрать с инпутов класс disabled
+  modifyClassForEach(fieldsets, 'remove', 'disabled');
+
+  // добавить пины
+  renderPins();
+  makePinsClickable();
 });
 
+
+// обратиться к каждому пину
+var makePinsClickable = function () {
+
+  // переменная-селектор для псевдопинов (созданные из js)
+  var mapPinItem = pinsSection.querySelectorAll('.map__pin');
+
+  mapPinItem.forEach(function (el) {
+
+    // поставить обработчики на пины, исключая большой главный пин (с кексиком)
+    if (!el.classList.contains('map__pin--main')) {
+      el.addEventListener('click', function () {
+
+        // предварительно выключить везде active
+        modifyClassForEach(mapPinItem, 'remove', 'map__pin--active');
+
+        // включить active, запилить объявление
+        el.classList.add('map__pin--active');
+        renderAdvert(getElementId(el));
+      });
+    }
+  });
+};
 

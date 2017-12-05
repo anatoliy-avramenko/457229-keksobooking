@@ -135,13 +135,13 @@ var appendFragment = function (createElement, path, mod) {
   }
 
   // добавить фрагмент в разметку
-
   if (mod) {
     path.insertBefore(fragment, mod);
   } else {
     path.appendChild(fragment);
   }
 };
+
 
 appendFragment(createPin, pinsSection);
 
@@ -202,120 +202,98 @@ appendFragment(createAdvert, map, advertSibling);
 // ОБРАБОТЧИКИ СОБЫТИЙ
 // ------------------------------------------------------------
 
-//
-// var noticeForm = document.querySelector('.notice__form');
-// var mapPinMain = document.querySelector('.map__pin--main');
-// var fieldsets = document.querySelectorAll('fieldset');
-//
-//
-// // получить ID элемента
-// var getElementId = function (element) {
-//   return element.getAttribute('id');
-// };
-//
-//
-// // добавить или удалить класс у группы элементов, forEach
-// var modifyClassForEach = function (elementsArray, mod, className) {
-//   elementsArray.forEach(function (el) {
-//     if (mod === 'remove') {
-//       el.classList.remove(className);
-//     } else if (mod === 'add') {
-//       el.classList.add(className);
-//     }
-//   });
-// };
-//
-//
-// // сделать все инпуты неактивными disabled
-// modifyClassForEach(fieldsets, 'add', 'disabled');
-//
-//
-// // обработчик по событию mouseup
-// mapPinMain.addEventListener('mouseup', function () {
-//
-//   // убрать fade
-//   map.classList.remove('map--faded');
-//
-//   // активировать форму
-//   noticeForm.classList.remove('notice__form--disabled');
-//
-//   // убрать с инпутов класс disabled
-//   modifyClassForEach(fieldsets, 'remove', 'disabled');
-//
-//   // добавить пины
-//   renderPins();
-//   parseAllPins();
-// });
-//
-//
-//
-// var closePopup = function (el) {
-//   el.classList.add('hidden');
-// };
-//
-// // ставить обработчики на пины по клику
-// var onPinClick = function (pinItem, pinParent) {
-//   pinItem.addEventListener('click', function () {
-//
-//
-//
-//     // предварительно выключить везде active
-//     modifyClassForEach(pinParent, 'remove', 'map__pin--active');
-//
-//     // включить active, запилить объявление
-//     pinItem.classList.add('map__pin--active');
-//     renderAdvert(getElementId(pinItem));
-//
-//     var mapCard = document.querySelector('.map__card');
-//     var popupClose = mapCard.querySelector('.popup__close');
-//
-//
-//     // mapCard.style.background = 'red';
-//
-//     // popupClose.classList.add('hidden');
-//
-//     popupClose.addEventListener('click', function () {
-//       mapCard.classList.add('hidden');
-//     });
-//
-//
-//   });
-// };
-//
-//
-// // ставить обработчики на пины по нажатию на Enter
-// var onPinEnterDown = function (pinItem, pinParent) {
-//   if (evt.keyCode === ENTER_KEYCODE) {
-//     pinItem.addEventListener('keyDown', function () {
-//
-//       // предварительно выключить везде active
-//       modifyClassForEach(pinParent, 'remove', 'map__pin--active');
-//
-//       // включить active, запилить объявление
-//       pinItem.classList.add('map__pin--active');
-//       renderAdvert(getElementId(pinItem));
-//     });
-//   }
-// };
-//
-//
-//
-//
-//
-//
-// popupClose.addEventListener('click', closePopup);
-//
-// // обратиться к каждому пину
-// var parseAllPins = function () {
-//   var mapPinItem = pinsSection.querySelectorAll('.map__pin');
-//   mapPinItem.forEach(function (el) {
-//
-//     // исключить большой главный пин (с кексиком)
-//     if (!el.classList.contains('map__pin--main')) {
-//       onPinClick(el, mapPinItem);
-//     }
-//   });
-// };
+
+var noticeForm = document.querySelector('.notice__form');
+var mapPinMain = document.querySelector('.map__pin--main');
+var fieldsets = document.querySelectorAll('fieldset');
+var mapPinItems = pinsSection.querySelectorAll('.map__pin:not(:first-of-type)');
+var mapCards = document.querySelectorAll('.map__card');
 
 
+// получить ID элемента
+var getElementId = function (element) {
+  return element.getAttribute('id');
+};
+
+
+// добавить или удалить класс у группы элементов, forEach
+var modifyClassForEach = function (elementsArray, mod, className) {
+  elementsArray.forEach(function (el) {
+    if (mod === 'toggle') {
+      el.classList.toggle(className);
+    } else if (mod === 'add') {
+      el.classList.add(className);
+    } else if (mod === 'remove') {
+      el.classList.remove(className);
+    }
+  });
+};
+
+
+// спрятать все ненужное при загрузке страницы
+modifyClassForEach(fieldsets, 'add', 'disabled');
+modifyClassForEach(mapPinItems, 'add', 'hidden');
+modifyClassForEach(mapCards, 'add', 'hidden');
+
+
+// активировать страницу
+var activatePage = function () {
+
+  // убрать fade
+  map.classList.remove('map--faded');
+
+  // активировать форму
+  noticeForm.classList.remove('notice__form--disabled');
+
+  // убрать с инпутов класс disabled
+  modifyClassForEach(fieldsets, 'remove', 'disabled');
+  modifyClassForEach(mapPinItems, 'remove', 'hidden');
+
+  // выключить обработчик на главной кнопке
+  mapPinMain.removeEventListener('mouseup', activatePage);
+
+  // включить обработчики на всех пинах
+  parseAllPins();
+};
+
+
+// обработчик по событию mouseup
+mapPinMain.addEventListener('mouseup', activatePage);
+
+
+var closeCard = function () {
+  modifyClassForEach(mapCards, 'add', 'hidden');
+  modifyClassForEach(mapPinItems, 'remove', 'map__pin--active');
+};
+
+
+var openCard = function (el) {
+  modifyClassForEach(mapCards, 'add', 'hidden');
+  modifyClassForEach(mapPinItems, 'remove', 'map__pin--active');
+  mapCards[getElementId(el)].classList.remove('hidden');
+  el.classList.add('map__pin--active');
+
+  mapCards[getElementId(el)].querySelector('.popup__close').addEventListener('click', function () {
+    closeCard();
+  });
+
+  document.addEventListener('keyDown', function (evt) {
+    if (evt.keyCode === ESC_KEYCODE) {
+      modifyClassForEach(mapCards, 'add', 'hidden');
+      modifyClassForEach(mapPinItems, 'remove', 'map__pin--active');
+    }
+  });
+};
+
+
+// обратиться к каждому пину
+var parseAllPins = function () {
+
+  mapPinItems.forEach(function (el) {
+
+    el.addEventListener('click', function () {
+      openCard(el);
+    });
+  });
+};
 

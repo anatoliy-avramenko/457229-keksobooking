@@ -5,6 +5,8 @@ var OFFER_TYPE = ['flat', 'house', 'bungalo'];
 var OFFER_TYPE_RUS = ['Квартира', 'Дом', 'Бунгало'];
 var OFFER_CHECK_TIME = ['12:00', '13:00', '14:00'];
 var OFFER_FEATURES = ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'];
+var ENTER_KEYCODE = 13;
+var ESC_KEYCODE = 27;
 
 // сгенерировать индексы аватаров
 var avatarIndexes = [];
@@ -223,8 +225,7 @@ var modifyClassForEach = function (elementsArray, mod, className) {
 modifyClassForEach(fieldsets, 'add', 'disabled');
 
 
-// обработчик по событию mouseup
-mapPinMain.addEventListener('mouseup', function () {
+var activatePage = function () {
 
   // убрать fade
   map.classList.remove('map--faded');
@@ -235,10 +236,18 @@ mapPinMain.addEventListener('mouseup', function () {
   // убрать с инпутов класс disabled
   modifyClassForEach(fieldsets, 'remove', 'disabled');
 
-  // добавить пины
+  // создать пины и отрисовать их
   renderPins();
   makePinsClickable();
-});
+};
+
+
+mapPinMain.setAttribute('tabindex', '1');
+
+
+// обработчик по событию click и mouseup
+mapPinMain.addEventListener('click', activatePage);
+mapPinMain.addEventListener('mouseup', activatePage);
 
 
 // обратиться к каждому пину
@@ -249,7 +258,7 @@ var makePinsClickable = function () {
 
   mapPinItem.forEach(function (el) {
 
-    el.setAttribute('tabindex', '0');
+    el.setAttribute('tabindex', '1');
 
     // поставить обработчики на пины, исключая большой главный пин (с кексиком)
     if (!el.classList.contains('map__pin--main')) {
@@ -264,12 +273,22 @@ var makePinsClickable = function () {
         if (mapCard) {
           mapCard.remove();
         }
+
         renderAdvert(getElementId(el));
+
         var popupClose = document.querySelector('.popup__close');
         mapCard = document.querySelector('.map__card');
+
         popupClose.addEventListener('click', function () {
           mapCard.remove();
           el.classList.remove('map__pin--active');
+        });
+
+        document.addEventListener('keydown', function (evt) {
+          if (evt.keyCode === ESC_KEYCODE) {
+            mapCard.remove();
+            el.classList.remove('map__pin--active');
+          }
         });
       });
     }

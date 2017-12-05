@@ -69,10 +69,10 @@ var generateCoordinates = function () {
 
 
 // сгенерировать массив из 8 объявлений
-var ads = [];
+var genericRealties = [];
 for (var n = 0; n < 8; n++) {
   generateCoordinates();
-  ads.push({
+  genericRealties.push({
     'author': {
       'avatar': generateAvatarPath()
     },
@@ -98,6 +98,8 @@ for (var n = 0; n < 8; n++) {
   });
 }
 
+// переменная на случай нового источника с недвижимостями
+var realties = genericRealties;
 
 // -----------------------------------------------------------
 // СОЗДАТЬ ПИНЫ
@@ -113,31 +115,35 @@ var pinsSection = document.querySelector('.map__pins');
 // задать пинам параметры из сгенерированных объектов
 var pinRad = 23;
 var pinArrowHeight = 18;
-var createPin = function (array, index) {
+var createPin = function (index) {
   var pinElement = pinTemplate.cloneNode(true);
 
-  // базовая точка пина - это центр его окружности, в то время, как пин должен указывать на координаты не своим центром, а концом своей "иголки"
-  // поправка (y - (pinRad + pinArrowHeight)) учитывает расположение базовой точки и как-бы смещает ее на наконечник "иголки"
-  // горизоатальная поправка не требуется, т.к. базовая точка находится на вертикальной оси пина
-  pinElement.style.left = (array[index].location.x) + 'px';
-  pinElement.style.top = (array[index].location.y - (pinRad + pinArrowHeight)) + 'px';
+  pinElement.style.left = (realties[index].location.x) + 'px';
+  pinElement.style.top = (realties[index].location.y - (pinRad + pinArrowHeight)) + 'px';
   pinElement.setAttribute('id', index);
-  pinElement.querySelector('img').setAttribute('src', array[index].author.avatar);
+  pinElement.querySelector('img').setAttribute('src', realties[index].author.avatar);
   return pinElement;
 };
 
 
-// записать вновь добавленные пины во fragment
-var fragment = document.createDocumentFragment();
-for (var j = 0; j < ads.length; j++) {
-  fragment.appendChild(createPin(ads, j));
-}
+var appendFragment = function (createElement, path, mod) {
+  var fragment = document.createDocumentFragment();
 
-// добавить fragment с пинами в разметку
-var renderPins = function () {
-  pinsSection.appendChild(fragment);
+  // записать свежие элементы во fragment (буферная зона)
+  for (var j = 0; j < realties.length; j++) {
+    fragment.appendChild(createElement(j));
+  }
+
+  // добавить фрагмент в разметку
+
+  if (mod) {
+    path.insertBefore(fragment, mod);
+  } else {
+    path.appendChild(fragment);
+  }
 };
 
+appendFragment(createPin, pinsSection);
 
 // -----------------------------------------------------------
 // ВЫВЕСТИ КАРТОЧКУ С ОБЪЯВЛЕНИЕМ
@@ -173,129 +179,143 @@ var map = document.querySelector('.map');
 
 
 // задать попапу параметры из объекта
-var createAdvert = function (entity) {
+var createAdvert = function (index) {
   var advertElement = advertTemplate.cloneNode(true);
-  advertElement.querySelector('h3').textContent = entity.offer.title;
-  advertElement.querySelector('p small').textContent = entity.offer.address;
-  advertElement.querySelector('.popup__price').innerHTML = entity.offer.price + ' &#x20bd;/ночь';
-  advertElement.querySelector('h4').textContent = translateOfferType(entity);
-  advertElement.querySelector('p:nth-of-type(3)').textContent = entity.offer.rooms + ' комнаты для ' + entity.offer.guests + ' гостей';
-  advertElement.querySelector('p:nth-of-type(4)').textContent = 'Заезд после ' + entity.offer.checkin + ', выезд до ' + entity.offer.checkout;
-  advertElement.querySelector('.popup__features').innerHTML = generateFeaturesMarkup(entity);
-  advertElement.querySelector('p:nth-of-type(5)').textContent = entity.offer.description;
-  advertElement.querySelector('.popup__avatar').setAttribute('src', entity.author.avatar);
+  advertElement.querySelector('h3').textContent = realties[index].offer.title;
+  advertElement.querySelector('p small').textContent = realties[index].offer.address;
+  advertElement.querySelector('.popup__price').innerHTML = realties[index].offer.price + ' &#x20bd;/ночь';
+  advertElement.querySelector('h4').textContent = translateOfferType(realties[index]);
+  advertElement.querySelector('p:nth-of-type(3)').textContent = realties[index].offer.rooms + ' комнаты для ' + realties[index].offer.guests + ' гостей';
+  advertElement.querySelector('p:nth-of-type(4)').textContent = 'Заезд после ' + realties[index].offer.checkin + ', выезд до ' + realties[index].offer.checkout;
+  advertElement.querySelector('.popup__features').innerHTML = generateFeaturesMarkup(realties[index]);
+  advertElement.querySelector('p:nth-of-type(5)').textContent = realties[index].offer.description;
+  advertElement.querySelector('.popup__avatar').setAttribute('src', realties[index].author.avatar);
+  advertElement.setAttribute('id', index);
+
   return advertElement;
 };
 
 
-// добавить объявление в разметку
-var renderAdvert = function (entity) {
-  map.insertBefore(createAdvert(ads[entity]), advertSibling);
-};
+appendFragment(createAdvert, map, advertSibling);
 
 // ------------------------------------------------------------
 // ОБРАБОТЧИКИ СОБЫТИЙ
 // ------------------------------------------------------------
 
+//
+// var noticeForm = document.querySelector('.notice__form');
+// var mapPinMain = document.querySelector('.map__pin--main');
+// var fieldsets = document.querySelectorAll('fieldset');
+//
+//
+// // получить ID элемента
+// var getElementId = function (element) {
+//   return element.getAttribute('id');
+// };
+//
+//
+// // добавить или удалить класс у группы элементов, forEach
+// var modifyClassForEach = function (elementsArray, mod, className) {
+//   elementsArray.forEach(function (el) {
+//     if (mod === 'remove') {
+//       el.classList.remove(className);
+//     } else if (mod === 'add') {
+//       el.classList.add(className);
+//     }
+//   });
+// };
+//
+//
+// // сделать все инпуты неактивными disabled
+// modifyClassForEach(fieldsets, 'add', 'disabled');
+//
+//
+// // обработчик по событию mouseup
+// mapPinMain.addEventListener('mouseup', function () {
+//
+//   // убрать fade
+//   map.classList.remove('map--faded');
+//
+//   // активировать форму
+//   noticeForm.classList.remove('notice__form--disabled');
+//
+//   // убрать с инпутов класс disabled
+//   modifyClassForEach(fieldsets, 'remove', 'disabled');
+//
+//   // добавить пины
+//   renderPins();
+//   parseAllPins();
+// });
+//
+//
+//
+// var closePopup = function (el) {
+//   el.classList.add('hidden');
+// };
+//
+// // ставить обработчики на пины по клику
+// var onPinClick = function (pinItem, pinParent) {
+//   pinItem.addEventListener('click', function () {
+//
+//
+//
+//     // предварительно выключить везде active
+//     modifyClassForEach(pinParent, 'remove', 'map__pin--active');
+//
+//     // включить active, запилить объявление
+//     pinItem.classList.add('map__pin--active');
+//     renderAdvert(getElementId(pinItem));
+//
+//     var mapCard = document.querySelector('.map__card');
+//     var popupClose = mapCard.querySelector('.popup__close');
+//
+//
+//     // mapCard.style.background = 'red';
+//
+//     // popupClose.classList.add('hidden');
+//
+//     popupClose.addEventListener('click', function () {
+//       mapCard.classList.add('hidden');
+//     });
+//
+//
+//   });
+// };
+//
+//
+// // ставить обработчики на пины по нажатию на Enter
+// var onPinEnterDown = function (pinItem, pinParent) {
+//   if (evt.keyCode === ENTER_KEYCODE) {
+//     pinItem.addEventListener('keyDown', function () {
+//
+//       // предварительно выключить везде active
+//       modifyClassForEach(pinParent, 'remove', 'map__pin--active');
+//
+//       // включить active, запилить объявление
+//       pinItem.classList.add('map__pin--active');
+//       renderAdvert(getElementId(pinItem));
+//     });
+//   }
+// };
+//
+//
+//
+//
+//
+//
+// popupClose.addEventListener('click', closePopup);
+//
+// // обратиться к каждому пину
+// var parseAllPins = function () {
+//   var mapPinItem = pinsSection.querySelectorAll('.map__pin');
+//   mapPinItem.forEach(function (el) {
+//
+//     // исключить большой главный пин (с кексиком)
+//     if (!el.classList.contains('map__pin--main')) {
+//       onPinClick(el, mapPinItem);
+//     }
+//   });
+// };
 
-var noticeForm = document.querySelector('.notice__form');
-var mapPinMain = document.querySelector('.map__pin--main');
-var fieldsets = document.querySelectorAll('fieldset');
 
 
-// получить ID элемента
-var getElementId = function (element) {
-  return element.getAttribute('id');
-};
-
-
-// добавить или удалить класс у группы элементов, forEach
-var modifyClassForEach = function (elementsArray, mod, className) {
-  elementsArray.forEach(function (el) {
-    if (mod === 'remove') {
-      el.classList.remove(className);
-    } else if (mod === 'add') {
-      el.classList.add(className);
-    }
-  });
-};
-
-
-// сделать все инпуты неактивными disabled
-modifyClassForEach(fieldsets, 'add', 'disabled');
-
-
-// обработчик по событию mouseup
-mapPinMain.addEventListener('mouseup', function () {
-
-  // убрать fade
-  map.classList.remove('map--faded');
-
-  // активировать форму
-  noticeForm.classList.remove('notice__form--disabled');
-
-  // убрать с инпутов класс disabled
-  modifyClassForEach(fieldsets, 'remove', 'disabled');
-
-  // добавить пины
-  renderPins();
-  parseAllPins();
-});
-
-
-// ставить обработчики на пины по клику
-var onPinClick = function (pinItem, pinParent) {
-  pinItem.addEventListener('click', function () {
-
-    // предварительно выключить везде active
-    modifyClassForEach(pinParent, 'remove', 'map__pin--active');
-
-    // включить active, запилить объявление
-    pinItem.classList.add('map__pin--active');
-    renderAdvert(getElementId(pinItem));
-  });
-};
-
-
-
-
-
-// ставить обработчики на пины по нажатию на Enter
-var onPinEnterDown = function (pinItem, pinParent) {
-  if (evt.keyCode === ENTER_KEYCODE) {
-    pinItem.addEventListener('keyDown', function () {
-
-      // предварительно выключить везде active
-      modifyClassForEach(pinParent, 'remove', 'map__pin--active');
-
-      // включить active, запилить объявление
-      pinItem.classList.add('map__pin--active');
-      renderAdvert(getElementId(pinItem));
-    });
-  }
-};
-
-
-
-var mapCard = pinsSection.querySelector('.popup');
-
-var closePopup = function () {
-  mapCard.classList.add('hidden');
-};
-
-
-
-
-
-
-// обратиться к каждому пину
-var parseAllPins = function () {
-  var mapPinItem = pinsSection.querySelectorAll('.map__pin');
-  mapPinItem.forEach(function (el) {
-
-    // исключить большой главный пин (с кексиком)
-    if (!el.classList.contains('map__pin--main')) {
-      onPinClick(el, mapPinItem);
-    }
-  });
-};

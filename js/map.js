@@ -5,7 +5,7 @@ var OFFER_TYPE = ['flat', 'house', 'bungalo'];
 var OFFER_TYPE_RUS = ['Квартира', 'Дом', 'Бунгало'];
 var OFFER_CHECK_TIME = ['12:00', '13:00', '14:00'];
 var OFFER_FEATURES = ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'];
-var ENTER_KEYCODE = 13;
+// var ENTER_KEYCODE = 13;
 var ESC_KEYCODE = 27;
 
 // сгенерировать индексы аватаров
@@ -254,44 +254,49 @@ mapPinMain.addEventListener('mouseup', activatePage);
 var makePinsClickable = function () {
 
   // переменная-селектор для псевдопинов (созданные из js)
-  var mapPinItem = pinsSection.querySelectorAll('.map__pin');
+  var mapPinItems = pinsSection.querySelectorAll('.map__pin:not(.map__pin--main)');
 
-  mapPinItem.forEach(function (el) {
+  mapPinItems.forEach(function (el) {
 
     el.setAttribute('tabindex', '1');
 
-    // поставить обработчики на пины, исключая большой главный пин (с кексиком)
-    if (!el.classList.contains('map__pin--main')) {
-      el.addEventListener('click', function () {
+    // поставить обработчики на пины
+    el.addEventListener('click', function () {
 
-        // предварительно выключить везде active
-        modifyClassForEach(mapPinItem, 'remove', 'map__pin--active');
+      // предварительно выключить везде active
+      modifyClassForEach(mapPinItems, 'remove', 'map__pin--active');
 
-        // включить active, убрать старое объявление, добавить новое
-        el.classList.add('map__pin--active');
-        var mapCard = document.querySelector('.map__card');
-        if (mapCard) {
-          mapCard.remove();
-        }
+      // включить active
+      el.classList.add('map__pin--active');
 
-        renderAdvert(getElementId(el));
+      // убрать старое объявление
+      var mapCard = document.querySelector('.map__card');
+      if (mapCard) {
+        mapCard.remove();
+      }
 
-        var popupClose = document.querySelector('.popup__close');
-        mapCard = document.querySelector('.map__card');
+      // добавить новое объявление
+      renderAdvert(getElementId(el));
 
-        popupClose.addEventListener('click', function () {
+      // объявить крестик для закрытия
+      var popupClose = document.querySelector('.popup__close');
+      // переобъявить card, т.к. прошлая была удалена
+      mapCard = document.querySelector('.map__card');
+
+      // обработчик на крестик по клику
+      popupClose.addEventListener('click', function () {
+        mapCard.remove();
+        el.classList.remove('map__pin--active');
+      });
+
+      // обработчик на крестик по Enter
+      document.addEventListener('keydown', function (evt) {
+        if (evt.keyCode === ESC_KEYCODE) {
           mapCard.remove();
           el.classList.remove('map__pin--active');
-        });
-
-        document.addEventListener('keydown', function (evt) {
-          if (evt.keyCode === ESC_KEYCODE) {
-            mapCard.remove();
-            el.classList.remove('map__pin--active');
-          }
-        });
+        }
       });
-    }
+    });
   });
 };
 

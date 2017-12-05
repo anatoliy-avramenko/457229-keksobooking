@@ -267,6 +267,13 @@ var closeCard = function () {
 };
 
 
+var onPopupEscDown = function (evt) {
+  if (evt.keyCode === ESC_KEYCODE) {
+    closeCard();
+  }
+};
+
+
 var openCard = function (el) {
   modifyClassForEach(mapCards, 'add', 'hidden');
   modifyClassForEach(mapPinItems, 'remove', 'map__pin--active');
@@ -277,12 +284,7 @@ var openCard = function (el) {
     closeCard();
   });
 
-  document.addEventListener('keyDown', function (evt) {
-    if (evt.keyCode === ESC_KEYCODE) {
-      modifyClassForEach(mapCards, 'add', 'hidden');
-      modifyClassForEach(mapPinItems, 'remove', 'map__pin--active');
-    }
-  });
+  document.addEventListener('keydown', onPopupEscDown);
 };
 
 

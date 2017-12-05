@@ -249,6 +249,8 @@ var makePinsClickable = function () {
 
   mapPinItem.forEach(function (el) {
 
+    el.setAttribute('tabindex', '0');
+
     // поставить обработчики на пины, исключая большой главный пин (с кексиком)
     if (!el.classList.contains('map__pin--main')) {
       el.addEventListener('click', function () {
@@ -256,9 +258,19 @@ var makePinsClickable = function () {
         // предварительно выключить везде active
         modifyClassForEach(mapPinItem, 'remove', 'map__pin--active');
 
-        // включить active, запилить объявление
+        // включить active, убрать старое объявление, добавить новое
         el.classList.add('map__pin--active');
+        var mapCard = document.querySelector('.map__card');
+        if (mapCard) {
+          mapCard.remove();
+        }
         renderAdvert(getElementId(el));
+        var popupClose = document.querySelector('.popup__close');
+        mapCard = document.querySelector('.map__card');
+        popupClose.addEventListener('click', function () {
+          mapCard.remove();
+          el.classList.remove('map__pin--active');
+        });
       });
     }
   });

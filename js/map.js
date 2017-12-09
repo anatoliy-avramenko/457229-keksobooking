@@ -198,9 +198,10 @@ var renderAdvert = function (entity) {
 // ------------------------------------------------------------
 
 
-var genericElements = {
+// var genericElements = {
+//   mapCard: document.querySelector('.map__card')
+// };
 
-};
 
 var noticeForm = document.querySelector('.notice__form');
 var mapPinMain = document.querySelector('.map__pin--main');
@@ -254,16 +255,17 @@ mapPinMain.addEventListener('click', activatePage);
 mapPinMain.addEventListener('mouseup', activatePage);
 
 
-
 var mapCard = document.querySelector('.map__card');
 
 
 // обработчик на крестик по Enter
 var onEscDown = function (evt) {
-  var el;
+  var activePin = map.querySelector('.map__pin--active');
   if (evt.keyCode === ESC_KEYCODE) {
     mapCard.remove();
-    el.classList.remove('map__pin--active');
+    activePin.classList.remove('map__pin--active');
+
+    document.removeEventListener('keydown', onEscDown);
   }
 };
 
@@ -293,29 +295,27 @@ var makePinsClickable = function () {
         mapCard.remove();
       }
 
-      // добавить новое объявление
-      renderAdvert(getElementId(el));
 
-      // объявить крестик для закрытия
-      var popupClose = document.querySelector('.popup__close');
-      // переобъявить card, т.к. прошлая была удалена
-      mapCard = document.querySelector('.map__card');
+      var renderCardWithListeners = function () {
 
-      // обработчик на крестик по клику
-      popupClose.addEventListener('click', function () {
-        mapCard.remove();
-        el.classList.remove('map__pin--active');
-      });
+        // добавить новое объявление
+        renderAdvert(getElementId(el));
 
-      document.addEventListener('keydown', onEscDown);
+        // объявить крестик для закрытия
+        var popupClose = document.querySelector('.popup__close');
+        // переобъявить card, т.к. прошлая была удалена
+        mapCard = document.querySelector('.map__card');
 
-      // обработчик на документе по
-      // document.addEventListener('keydown', function (evt) {
-      //   if (evt.keyCode === ESC_KEYCODE) {
-      //     mapCard.remove();
-      //     el.classList.remove('map__pin--active');
-      //   }
-      // });
+        // обработчик на крестик по клику
+        popupClose.addEventListener('click', function () {
+          mapCard.remove();
+          el.classList.remove('map__pin--active');
+        });
+
+        document.addEventListener('keydown', onEscDown);
+      };
+
+      renderCardWithListeners();
     });
   });
 };

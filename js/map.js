@@ -319,3 +319,26 @@ var makePinsClickable = function () {
     });
   });
 };
+
+
+// ---------------------------------------------
+// ВАЛИДАЦИ ФОРМЫ
+// ---------------------------------------------
+
+var checkinTime = document.querySelector('#timein');
+var checkoutTime = document.querySelector('#timeout');
+
+var setCheckDepedencies = function (subject, target) {
+  subject.addEventListener('change', function () {
+    for (var i = 0; i < subject.options.length; i++) {
+      var option = subject.options[i];
+      if (option.selected) {
+        target.selectedIndex = i;
+      }
+    }
+  });
+};
+
+setCheckDepedencies(checkinTime, checkoutTime);
+setCheckDepedencies(checkoutTime, checkinTime);
+

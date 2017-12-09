@@ -198,10 +198,6 @@ var renderAdvert = function (entity) {
 // ------------------------------------------------------------
 
 
-var genericElements = {
-
-};
-
 var noticeForm = document.querySelector('.notice__form');
 var mapPinMain = document.querySelector('.map__pin--main');
 var fieldsets = document.querySelectorAll('fieldset');
@@ -254,20 +250,6 @@ mapPinMain.addEventListener('click', activatePage);
 mapPinMain.addEventListener('mouseup', activatePage);
 
 
-
-var mapCard = document.querySelector('.map__card');
-
-
-// обработчик на крестик по Enter
-var onEscDown = function (evt) {
-  var el;
-  if (evt.keyCode === ESC_KEYCODE) {
-    mapCard.remove();
-    el.classList.remove('map__pin--active');
-  }
-};
-
-
 // обратиться к каждому пину
 var makePinsClickable = function () {
 
@@ -288,7 +270,7 @@ var makePinsClickable = function () {
       el.classList.add('map__pin--active');
 
       // убрать старое объявление
-      mapCard = document.querySelector('.map__card');
+      var mapCard = document.querySelector('.map__card');
       if (mapCard) {
         mapCard.remove();
       }
@@ -307,15 +289,14 @@ var makePinsClickable = function () {
         el.classList.remove('map__pin--active');
       });
 
-      document.addEventListener('keydown', onEscDown);
-
-      // обработчик на документе по
-      // document.addEventListener('keydown', function (evt) {
-      //   if (evt.keyCode === ESC_KEYCODE) {
-      //     mapCard.remove();
-      //     el.classList.remove('map__pin--active');
-      //   }
-      // });
+      // обработчик на крестик по Enter
+      document.addEventListener('keydown', function (evt) {
+        if (evt.keyCode === ESC_KEYCODE) {
+          mapCard.remove();
+          el.classList.remove('map__pin--active');
+        }
+      });
     });
   });
 };
+

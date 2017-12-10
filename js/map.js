@@ -452,3 +452,23 @@ setCapacityDependencies();
 
 
 // валидировать данные из формы
+var inputs = document.querySelectorAll('input');
+var submit = document.querySelector('.form__submit');
+
+
+var validateForm = function () {
+  submit.addEventListener('click', function () {
+    for (var i = 0; i < inputs.length; i++) {
+      var input = inputs[i];
+      if (input.checkValidity() === false) {
+        input.style.borderColor = 'red';
+      } else if (input.checkValidity() === true) {
+        input.style.borderColor = '#d9d9d3';
+      }
+    }
+  });
+};
+
+validateForm();
+
+

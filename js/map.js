@@ -328,17 +328,75 @@ var makePinsClickable = function () {
 var checkinTime = document.querySelector('#timein');
 var checkoutTime = document.querySelector('#timeout');
 
-var setCheckDepedencies = function (subject, target) {
-  subject.addEventListener('change', function () {
-    for (var i = 0; i < subject.options.length; i++) {
-      var option = subject.options[i];
-      if (option.selected) {
-        target.selectedIndex = i;
-      }
+
+// var setCheckDepedencies = function (subject) {
+//   var target;
+//   if (subject === checkinTime) {
+//     target = checkoutTime;
+//   } else if (subject === checkoutTime) {
+//     target = checkinTime;
+//   }
+//   subject.addEventListener('change', function () {
+//     for (var i = 0; i < subject.options.length; i++) {
+//       var option = subject.options[i];
+//       if (option.selected) {
+//         target.selectedIndex = i;
+//       }
+//     }
+//   });
+// };
+//
+// var onCheckFocus = function (subject) {
+//   subject.addEventListener('focus', setCheckDepedencies);
+// };
+
+
+var onCheckFocus = function (subject) {
+  subject.addEventListener('focus', function () {
+    var target;
+    if (subject === checkinTime) {
+      target = checkoutTime;
+    } else if (subject === checkoutTime) {
+      target = checkinTime;
     }
+    subject.addEventListener('change', function () {
+      for (var i = 0; i < subject.options.length; i++) {
+        var option = subject.options[i];
+        if (option.selected) {
+          target.selectedIndex = i;
+        }
+      }
+    });
   });
 };
 
-setCheckDepedencies(checkinTime, checkoutTime);
-setCheckDepedencies(checkoutTime, checkinTime);
+onCheckFocus(checkinTime);
+onCheckFocus(checkoutTime);
 
+
+var entityType = document.querySelector('#type');
+var price = document.querySelector('#price');
+
+
+var changePriceMin = function () {
+  var currentIndex = entityType.selectedIndex;
+  var option = entityType.options[currentIndex];
+
+  if (option.value === 'bungalo') {
+    price.setAttribute('min', '0');
+  } else if (option.value === 'flat') {
+    price.setAttribute('min', '1000');
+  } else if (option.value === 'house') {
+    price.setAttribute('min', '5000');
+  } else if (option.value === 'palace') {
+    price.setAttribute('min', '10000');
+  }
+};
+
+var setEntityTypeDependencies = function () {
+  changePriceMin();
+  entityType.addEventListener('change', changePriceMin);
+};
+
+
+setEntityTypeDependencies();

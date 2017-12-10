@@ -5,6 +5,8 @@ var OFFER_TYPE = ['flat', 'house', 'bungalo'];
 var OFFER_TYPE_RUS = ['Квартира', 'Дом', 'Бунгало'];
 var OFFER_CHECK_TIME = ['12:00', '13:00', '14:00'];
 var OFFER_FEATURES = ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'];
+// var ENTER_KEYCODE = 13;
+var ESC_KEYCODE = 27;
 
 // сгенерировать индексы аватаров
 var avatarIndexes = [];
@@ -96,10 +98,10 @@ for (var n = 0; n < 8; n++) {
   });
 }
 
-// -----------------------------------------------------------
-// -----------------------------------------------------------
 
-document.querySelector('.map').classList.remove('map--faded');
+// -----------------------------------------------------------
+// СОЗДАТЬ ПИНЫ
+// -----------------------------------------------------------
 
 // темплейт пина с аватаром
 var pinTemplate = document.querySelector('template').content.querySelector('.map__pin');
@@ -111,27 +113,34 @@ var pinsSection = document.querySelector('.map__pins');
 // задать пинам параметры из сгенерированных объектов
 var pinRad = 23;
 var pinArrowHeight = 18;
-var createPin = function (entity) {
+var createPin = function (array, index) {
   var pinElement = pinTemplate.cloneNode(true);
 
   // базовая точка пина - это центр его окружности, в то время, как пин должен указывать на координаты не своим центром, а концом своей "иголки"
   // поправка (y - (pinRad + pinArrowHeight)) учитывает расположение базовой точки и как-бы смещает ее на наконечник "иголки"
   // горизоатальная поправка не требуется, т.к. базовая точка находится на вертикальной оси пина
-  pinElement.style.left = (entity.location.x) + 'px';
-  pinElement.style.top = (entity.location.y - (pinRad + pinArrowHeight)) + 'px';
-  pinElement.querySelector('img').setAttribute('src', entity.author.avatar);
+  pinElement.style.left = (array[index].location.x) + 'px';
+  pinElement.style.top = (array[index].location.y - (pinRad + pinArrowHeight)) + 'px';
+  pinElement.setAttribute('id', index);
+  pinElement.querySelector('img').setAttribute('src', array[index].author.avatar);
   return pinElement;
 };
 
 
-// записать вновь добавленные пины в разметку
+// записать вновь добавленные пины во fragment
 var fragment = document.createDocumentFragment();
 for (var j = 0; j < ads.length; j++) {
-  fragment.appendChild(createPin(ads[j]));
+  fragment.appendChild(createPin(ads, j));
 }
-pinsSection.appendChild(fragment);
+
+// добавить fragment с пинами в разметку
+var renderPins = function () {
+  pinsSection.appendChild(fragment);
+};
+
 
 // -----------------------------------------------------------
+// ВЫВЕСТИ КАРТОЧКУ С ОБЪЯВЛЕНИЕМ
 // -----------------------------------------------------------
 
 // перевести тип жилья на русский
@@ -145,7 +154,7 @@ var translateOfferType = function (entity) {
 };
 
 
-// вывести <li> для ads.offer.features
+// вывести списко features в объявление
 var generateFeaturesMarkup = function (entity) {
   var featuresMarkup = '';
   for (var i = 0; i < entity.offer.features.length; i++) {
@@ -160,7 +169,7 @@ var advertTemplate = document.querySelector('template').content.querySelector('.
 
 // блок для складывания пинов
 var advertSibling = document.querySelector('.map__filters-container');
-var advertParent = document.querySelector('.map');
+var map = document.querySelector('.map');
 
 
 // задать попапу параметры из объекта
@@ -180,4 +189,133 @@ var createAdvert = function (entity) {
 
 
 // добавить объявление в разметку
-advertParent.insertBefore(createAdvert(ads[0]), advertSibling);
+var renderAdvert = function (entity) {
+  map.insertBefore(createAdvert(ads[entity]), advertSibling);
+};
+
+// ------------------------------------------------------------
+// ОБРАБОТЧИКИ СОБЫТИЙ
+// ------------------------------------------------------------
+
+
+// var genericElements = {
+//   mapCard: document.querySelector('.map__card')
+// };
+
+
+var noticeForm = document.querySelector('.notice__form');
+var mapPinMain = document.querySelector('.map__pin--main');
+var fieldsets = document.querySelectorAll('fieldset');
+
+
+// получить ID элемента
+var getElementId = function (element) {
+  return element.getAttribute('id');
+};
+
+
+// добавить или удалить класс у группы элементов, forEach
+var modifyClassForEach = function (elementsArray, mod, className) {
+  elementsArray.forEach(function (el) {
+    if (mod === 'remove') {
+      el.classList.remove(className);
+    } else if (mod === 'add') {
+      el.classList.add(className);
+    }
+  });
+};
+
+
+// сделать все инпуты неактивными disabled
+modifyClassForEach(fieldsets, 'add', 'disabled');
+
+
+var activatePage = function () {
+
+  // убрать fade
+  map.classList.remove('map--faded');
+
+  // активировать форму
+  noticeForm.classList.remove('notice__form--disabled');
+
+  // убрать с инпутов класс disabled
+  modifyClassForEach(fieldsets, 'remove', 'disabled');
+
+  // создать пины и отрисовать их
+  renderPins();
+  makePinsClickable();
+};
+
+
+mapPinMain.setAttribute('tabindex', '1');
+
+
+// обработчик по событию click и mouseup
+mapPinMain.addEventListener('click', activatePage);
+mapPinMain.addEventListener('mouseup', activatePage);
+
+
+var mapCard = document.querySelector('.map__card');
+
+
+// обработчик на крестик по Enter
+var onEscDown = function (evt) {
+  var activePin = map.querySelector('.map__pin--active');
+  if (evt.keyCode === ESC_KEYCODE) {
+    mapCard.remove();
+    activePin.classList.remove('map__pin--active');
+
+    document.removeEventListener('keydown', onEscDown);
+  }
+};
+
+
+// обратиться к каждому пину
+var makePinsClickable = function () {
+
+  // переменная-селектор для псевдопинов (созданные из js)
+  var mapPinItems = pinsSection.querySelectorAll('.map__pin:not(.map__pin--main)');
+
+  mapPinItems.forEach(function (el) {
+
+    el.setAttribute('tabindex', '1');
+
+    // поставить обработчики на пины
+    el.addEventListener('click', function () {
+
+      // предварительно выключить везде active
+      modifyClassForEach(mapPinItems, 'remove', 'map__pin--active');
+
+      // включить active
+      el.classList.add('map__pin--active');
+
+      // убрать старое объявление
+      mapCard = document.querySelector('.map__card');
+      if (mapCard) {
+        mapCard.remove();
+      }
+
+
+      var renderCardWithListeners = function () {
+
+        // добавить новое объявление
+        renderAdvert(getElementId(el));
+
+        // объявить крестик для закрытия
+        var popupClose = document.querySelector('.popup__close');
+        // переобъявить card, т.к. прошлая была удалена
+        mapCard = document.querySelector('.map__card');
+
+        // обработчик на крестик по клику
+        popupClose.addEventListener('click', function () {
+          mapCard.remove();
+          el.classList.remove('map__pin--active');
+        });
+
+        document.addEventListener('keydown', onEscDown);
+      };
+
+      renderCardWithListeners();
+    });
+  });
+};

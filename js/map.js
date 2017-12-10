@@ -325,32 +325,19 @@ var makePinsClickable = function () {
 // ВАЛИДАЦИ ФОРМЫ
 // ---------------------------------------------
 
+var addressField = document.querySelector('#address');
+var addressY = window.getComputedStyle(mapPinMain, null).getPropertyValue('top');
+var addressX = window.getComputedStyle(mapPinMain, null).getPropertyValue('left');
+
+// задать предварительные значения для адреса
+addressField.setAttribute('value', addressX + ' , ' + addressY);
+
+
 var checkinTime = document.querySelector('#timein');
 var checkoutTime = document.querySelector('#timeout');
 
 
-// var setCheckDepedencies = function (subject) {
-//   var target;
-//   if (subject === checkinTime) {
-//     target = checkoutTime;
-//   } else if (subject === checkoutTime) {
-//     target = checkinTime;
-//   }
-//   subject.addEventListener('change', function () {
-//     for (var i = 0; i < subject.options.length; i++) {
-//       var option = subject.options[i];
-//       if (option.selected) {
-//         target.selectedIndex = i;
-//       }
-//     }
-//   });
-// };
-//
-// var onCheckFocus = function (subject) {
-//   subject.addEventListener('focus', setCheckDepedencies);
-// };
-
-
+// задать зависимости checkin / checkout друг от друга
 var onCheckFocus = function (subject) {
   subject.addEventListener('focus', function () {
     var target;
@@ -374,9 +361,9 @@ onCheckFocus(checkinTime);
 onCheckFocus(checkoutTime);
 
 
+// менять минимальную цену в зависмости от типа жилья
 var entityType = document.querySelector('#type');
 var price = document.querySelector('#price');
-
 
 var changePriceMin = function () {
   var currentIndex = entityType.selectedIndex;
@@ -398,5 +385,70 @@ var setEntityTypeDependencies = function () {
   entityType.addEventListener('change', changePriceMin);
 };
 
-
 setEntityTypeDependencies();
+
+
+// менять вместимость в зависимости от количества комнат
+var roomNumber = document.querySelector('#room_number');
+var capacity = document.querySelector('#capacity');
+
+var changeCapacity = function () {
+  var currentIndex = roomNumber.selectedIndex;
+  var selectedOption = roomNumber.options[currentIndex];
+
+  if (selectedOption.value === '1') {
+    for (var i = 0; i < capacity.options.length; i++) {
+      var optionOfSecondSet = capacity.options[i];
+      if (optionOfSecondSet.value !== '1') {
+        optionOfSecondSet.disabled = true;
+        optionOfSecondSet.selected = false;
+      } else {
+        optionOfSecondSet.disabled = false;
+        capacity.selectedIndex = i;
+      }
+    }
+  } else if (selectedOption.value === '2') {
+    for (i = 0; i < capacity.options.length; i++) {
+      optionOfSecondSet = capacity.options[i];
+      if (optionOfSecondSet.value !== '1' && optionOfSecondSet.value !== '2') {
+        optionOfSecondSet.disabled = true;
+        optionOfSecondSet.selected = false;
+      } else {
+        optionOfSecondSet.disabled = false;
+        capacity.selectedIndex = i;
+      }
+    }
+  } else if (selectedOption.value === '3') {
+    for (i = 0; i < capacity.options.length; i++) {
+      optionOfSecondSet = capacity.options[i];
+      if (optionOfSecondSet.value === '0') {
+        optionOfSecondSet.disabled = true;
+        optionOfSecondSet.selected = false;
+      } else {
+        optionOfSecondSet.disabled = false;
+        capacity.selectedIndex = i;
+      }
+    }
+  } else if (selectedOption.value === '100') {
+    for (i = 0; i < capacity.options.length; i++) {
+      optionOfSecondSet = capacity.options[i];
+      if (optionOfSecondSet.value !== '0') {
+        optionOfSecondSet.disabled = true;
+        optionOfSecondSet.selected = false;
+      } else {
+        optionOfSecondSet.disabled = false;
+        capacity.selectedIndex = i;
+      }
+    }
+  }
+};
+
+var setCapacityDependencies = function () {
+  changeCapacity();
+  roomNumber.addEventListener('change', changeCapacity);
+};
+
+setCapacityDependencies();
+
+
+// валидировать данные из формы

@@ -392,63 +392,117 @@ setEntityTypeDependencies();
 var roomNumber = document.querySelector('#room_number');
 var capacity = document.querySelector('#capacity');
 
-var changeCapacity = function () {
-  var currentIndex = roomNumber.selectedIndex;
-  var selectedOption = roomNumber.options[currentIndex];
+var roomCapacity = {
+  100: ['0'],
+  1: ['1'],
+  2: ['1', '2'],
+  3: ['1', '2', '3']
+};
 
-  if (selectedOption.value === '1') {
-    for (var i = 0; i < capacity.options.length; i++) {
-      var optionOfSecondSet = capacity.options[i];
-      if (optionOfSecondSet.value !== '1') {
-        optionOfSecondSet.disabled = true;
-        optionOfSecondSet.selected = false;
-      } else {
-        optionOfSecondSet.disabled = false;
-        capacity.selectedIndex = i;
-      }
-    }
-  } else if (selectedOption.value === '2') {
-    for (i = 0; i < capacity.options.length; i++) {
-      optionOfSecondSet = capacity.options[i];
-      if (optionOfSecondSet.value !== '1' && optionOfSecondSet.value !== '2') {
-        optionOfSecondSet.disabled = true;
-        optionOfSecondSet.selected = false;
-      } else {
-        optionOfSecondSet.disabled = false;
-        capacity.selectedIndex = i;
-      }
-    }
-  } else if (selectedOption.value === '3') {
-    for (i = 0; i < capacity.options.length; i++) {
-      optionOfSecondSet = capacity.options[i];
-      if (optionOfSecondSet.value === '0') {
-        optionOfSecondSet.disabled = true;
-        optionOfSecondSet.selected = false;
-      } else {
-        optionOfSecondSet.disabled = false;
-        capacity.selectedIndex = i;
-      }
-    }
-  } else if (selectedOption.value === '100') {
-    for (i = 0; i < capacity.options.length; i++) {
-      optionOfSecondSet = capacity.options[i];
-      if (optionOfSecondSet.value !== '0') {
-        optionOfSecondSet.disabled = true;
-        optionOfSecondSet.selected = false;
-      } else {
-        optionOfSecondSet.disabled = false;
-        capacity.selectedIndex = i;
+
+// измениять capacity зависимо от rooms
+var changeCapacity = function (numberOfRooms) {
+
+  // отсылка к объекту с массивами - вместимость каждой комнаты
+  var currentCapacity = roomCapacity[numberOfRooms];
+
+  // перебор всех опций вместимости
+  for (var i = 0; i < capacity.options.length; i++) {
+    var capacityCurrentOption = capacity.options[i];
+    capacityCurrentOption.disabled = true;
+    capacityCurrentOption.selected = false;
+
+    // перебор всех составляющих массива roomCapacity.property
+    for (j = 0; j < currentCapacity.length; j++) {
+      if (capacityCurrentOption.value === currentCapacity[j]) {
+        capacityCurrentOption.disabled = false;
+        capacityCurrentOption.selected = true;
       }
     }
   }
 };
 
+
+// установить зависимость вместительности от количества комнат
 var setCapacityDependencies = function () {
-  changeCapacity();
-  roomNumber.addEventListener('change', changeCapacity);
+
+  // ссылка на value выбранной опции поля Rooms
+  var currentIndex = roomNumber.selectedIndex;
+  var selectedOptionValue = roomNumber.options[currentIndex].value;
+
+  // запустить первоначальное изменение capacity
+  changeCapacity(selectedOptionValue);
+
+  // поставить изменение capacity по каждому новому выбору опции
+  roomNumber.addEventListener('change', function () {
+
+    // новая ссылка на value опции rooms, т.к. опция была перебырана
+    currentIndex = roomNumber.selectedIndex;
+    selectedOptionValue = roomNumber.options[currentIndex].value;
+    changeCapacity(selectedOptionValue);
+  });
 };
 
 setCapacityDependencies();
+
+
+// var changeCapacity = function () {
+//   var currentIndex = roomNumber.selectedIndex;
+//   var selectedOption = roomNumber.options[currentIndex];
+//
+//   if (selectedOption.value === '1') {
+//     for (var i = 0; i < capacity.options.length; i++) {
+//       var optionOfSecondSet = capacity.options[i];
+//       if (optionOfSecondSet.value !== '1') {
+//         optionOfSecondSet.disabled = true;
+//         optionOfSecondSet.selected = false;
+//       } else {
+//         optionOfSecondSet.disabled = false;
+//         capacity.selectedIndex = i;
+//       }
+//     }
+//   } else if (selectedOption.value === '2') {
+//     for (i = 0; i < capacity.options.length; i++) {
+//       optionOfSecondSet = capacity.options[i];
+//       if (optionOfSecondSet.value !== '1' && optionOfSecondSet.value !== '2') {
+//         optionOfSecondSet.disabled = true;
+//         optionOfSecondSet.selected = false;
+//       } else {
+//         optionOfSecondSet.disabled = false;
+//         capacity.selectedIndex = i;
+//       }
+//     }
+//   } else if (selectedOption.value === '3') {
+//     for (i = 0; i < capacity.options.length; i++) {
+//       optionOfSecondSet = capacity.options[i];
+//       if (optionOfSecondSet.value === '0') {
+//         optionOfSecondSet.disabled = true;
+//         optionOfSecondSet.selected = false;
+//       } else {
+//         optionOfSecondSet.disabled = false;
+//         capacity.selectedIndex = i;
+//       }
+//     }
+//   } else if (selectedOption.value === '100') {
+//     for (i = 0; i < capacity.options.length; i++) {
+//       optionOfSecondSet = capacity.options[i];
+//       if (optionOfSecondSet.value !== '0') {
+//         optionOfSecondSet.disabled = true;
+//         optionOfSecondSet.selected = false;
+//       } else {
+//         optionOfSecondSet.disabled = false;
+//         capacity.selectedIndex = i;
+//       }
+//     }
+//   }
+// };
+//
+// var setCapacityDependencies = function () {
+//   changeCapacity();
+//   roomNumber.addEventListener('change', changeCapacity);
+// };
+//
+// setCapacityDependencies();
 
 
 // валидировать данные из формы

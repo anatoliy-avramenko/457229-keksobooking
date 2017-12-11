@@ -361,37 +361,51 @@ onCheckFocus(checkinTime);
 onCheckFocus(checkoutTime);
 
 
+// -------------------------------------------------------
 // менять минимальную цену в зависмости от типа жилья
 var entityType = document.querySelector('#type');
 var price = document.querySelector('#price');
 
-var changePriceMin = function () {
-  var currentIndex = entityType.selectedIndex;
-  var option = entityType.options[currentIndex];
 
-  if (option.value === 'bungalo') {
-    price.setAttribute('min', '0');
-  } else if (option.value === 'flat') {
-    price.setAttribute('min', '1000');
-  } else if (option.value === 'house') {
-    price.setAttribute('min', '5000');
-  } else if (option.value === 'palace') {
-    price.setAttribute('min', '10000');
-  }
+// список возможных зависимостей - тип жилья: цена
+var typeMinPrice = {
+  'bungalo': 0,
+  'flat': '1000',
+  'house': '5000',
+  'palace': '10000'
 };
 
-var setEntityTypeDependencies = function () {
-  changePriceMin();
-  entityType.addEventListener('change', changePriceMin);
+
+// функция изменения атрибута min для price
+var parsePrices = function (arr) {
+  price.setAttribute('min', typeMinPrice[arr]);
 };
 
-setEntityTypeDependencies();
+
+// изменить атрибут min для price одныжды в начале
+var currentTypeValue = entityType.options[entityType.selectedIndex].value;
+parsePrices(currentTypeValue);
 
 
+// функция-обработчик
+var changeMinPrice = function (e) {
+
+  // ссылка на Value элемента, на котором зафиксировано событие
+  var currentTypeDependency = e.target.value;
+  parsePrices(currentTypeDependency);
+};
+
+// установка обработчика на поле выбора опции типа жилья
+entityType.addEventListener('change', changeMinPrice);
+
+
+// -------------------------------------------------------
 // менять вместимость в зависимости от количества комнат
 var roomNumber = document.querySelector('#room_number');
 var capacity = document.querySelector('#capacity');
 
+
+// объект со списком доступных зависимостей Rooms: Capacity
 var roomCapacity = {
   100: ['0'],
   1: ['1'],
@@ -400,109 +414,42 @@ var roomCapacity = {
 };
 
 
-// измениять capacity зависимо от rooms
-var changeCapacity = function (numberOfRooms) {
-
-  // отсылка к объекту с массивами - вместимость каждой комнаты
-  var currentCapacity = roomCapacity[numberOfRooms];
-
-  // перебор всех опций вместимости
+// перебор всех опций Capacity и выключение не релевантных
+var parseCapacities = function (arr) {
   for (var i = 0; i < capacity.options.length; i++) {
-    var capacityCurrentOption = capacity.options[i];
-    capacityCurrentOption.disabled = true;
-    capacityCurrentOption.selected = false;
 
-    // перебор всех составляющих массива roomCapacity.property
-    for (j = 0; j < currentCapacity.length; j++) {
-      if (capacityCurrentOption.value === currentCapacity[j]) {
-        capacityCurrentOption.disabled = false;
-        capacityCurrentOption.selected = true;
-      }
+    // обращение к текущей опции capacity в цикле
+    var capacityCurrentOption = capacity.options[i];
+
+    // если значение capacity, выбранное циклом, содержится в выбранном currentCapacitySet, то ...
+    if (arr.indexOf(capacityCurrentOption.value) > -1) {
+      capacityCurrentOption.disabled = false;
+      capacityCurrentOption.selected = true;
+    } else {
+      capacityCurrentOption.disabled = true;
     }
   }
 };
 
 
-// установить зависимость вместительности от количества комнат
-var setCapacityDependencies = function () {
+// отсылка в выбранному значению Rooms
+var currentRoomValue = roomNumber.options[roomNumber.selectedIndex].value;
 
-  // ссылка на value выбранной опции поля Rooms
-  var currentIndex = roomNumber.selectedIndex;
-  var selectedOptionValue = roomNumber.options[currentIndex].value;
+// изменить capacity зависимо от Rooms только однажды в начале
+parseCapacities(roomCapacity[currentRoomValue]);
 
-  // запустить первоначальное изменение capacity
-  changeCapacity(selectedOptionValue);
 
-  // поставить изменение capacity по каждому новому выбору опции
-  roomNumber.addEventListener('change', function () {
+// функция обработчик - измениять capacity зависимо от rooms
+var changeCapacity = function (e) {
 
-    // новая ссылка на value опции rooms, т.к. опция была перебырана
-    currentIndex = roomNumber.selectedIndex;
-    selectedOptionValue = roomNumber.options[currentIndex].value;
-    changeCapacity(selectedOptionValue);
-  });
+  // отсылка к объекту с массивами - вместимость каждой комнаты
+  var currentCapacitySet = roomCapacity[e.target.value];
+  parseCapacities(currentCapacitySet);
 };
 
-setCapacityDependencies();
 
-
-// var changeCapacity = function () {
-//   var currentIndex = roomNumber.selectedIndex;
-//   var selectedOption = roomNumber.options[currentIndex];
-//
-//   if (selectedOption.value === '1') {
-//     for (var i = 0; i < capacity.options.length; i++) {
-//       var optionOfSecondSet = capacity.options[i];
-//       if (optionOfSecondSet.value !== '1') {
-//         optionOfSecondSet.disabled = true;
-//         optionOfSecondSet.selected = false;
-//       } else {
-//         optionOfSecondSet.disabled = false;
-//         capacity.selectedIndex = i;
-//       }
-//     }
-//   } else if (selectedOption.value === '2') {
-//     for (i = 0; i < capacity.options.length; i++) {
-//       optionOfSecondSet = capacity.options[i];
-//       if (optionOfSecondSet.value !== '1' && optionOfSecondSet.value !== '2') {
-//         optionOfSecondSet.disabled = true;
-//         optionOfSecondSet.selected = false;
-//       } else {
-//         optionOfSecondSet.disabled = false;
-//         capacity.selectedIndex = i;
-//       }
-//     }
-//   } else if (selectedOption.value === '3') {
-//     for (i = 0; i < capacity.options.length; i++) {
-//       optionOfSecondSet = capacity.options[i];
-//       if (optionOfSecondSet.value === '0') {
-//         optionOfSecondSet.disabled = true;
-//         optionOfSecondSet.selected = false;
-//       } else {
-//         optionOfSecondSet.disabled = false;
-//         capacity.selectedIndex = i;
-//       }
-//     }
-//   } else if (selectedOption.value === '100') {
-//     for (i = 0; i < capacity.options.length; i++) {
-//       optionOfSecondSet = capacity.options[i];
-//       if (optionOfSecondSet.value !== '0') {
-//         optionOfSecondSet.disabled = true;
-//         optionOfSecondSet.selected = false;
-//       } else {
-//         optionOfSecondSet.disabled = false;
-//         capacity.selectedIndex = i;
-//       }
-//     }
-//   }
-// };
-//
-// var setCapacityDependencies = function () {
-//   changeCapacity();
-//   roomNumber.addEventListener('change', changeCapacity);
-// };
-//
-// setCapacityDependencies();
+// включение обработчика на изменение select -> Rooms
+roomNumber.addEventListener('change', changeCapacity);
 
 
 // валидировать данные из формы
@@ -524,5 +471,3 @@ var validateForm = function () {
 };
 
 validateForm();
-
-

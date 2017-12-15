@@ -1,473 +1,106 @@
 'use strict';
 
-var OFFER_TITLES = ['Большая уютная квартира', 'Маленькая неуютная квартира', 'Огромный прекрасный дворец', 'Маленький ужасный дворец', 'Красивый гостевой домик', 'Некрасивый негостеприимный домик', 'Уютное бунгало далеко от моря', 'Неуютное бунгало по колено в воде'];
-var OFFER_TYPE = ['flat', 'house', 'bungalo'];
-var OFFER_TYPE_RUS = ['Квартира', 'Дом', 'Бунгало'];
-var OFFER_CHECK_TIME = ['12:00', '13:00', '14:00'];
-var OFFER_FEATURES = ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'];
-// var ENTER_KEYCODE = 13;
-var ESC_KEYCODE = 27;
-
-// сгенерировать индексы аватаров
-var avatarIndexes = [];
-var generateAvatarIndexes = function (length) {
-  for (var i = 0; i < length; i++) {
-    avatarIndexes[i] = '0' + (i + 1);
-  }
-  return avatarIndexes;
-};
-
-
-// сгенерировать случайное число в диапазоне bottom - top
-var randomizeNumber = function (bottom, top) {
-  return Math.floor((Math.random() * top) + bottom);
-};
-
-
-// выбрать случайное уникальное наименование из массива
-var pickArrayItem = function (array) {
-  var currentIndex = randomizeNumber(0, array.length);
-  var arrayItem = array[currentIndex];
-  array.splice(currentIndex, 1);
-  return arrayItem;
-};
-
-
-// выбрать случайное НЕ уникальное наименование из массива
-var pickAnyArrayItem = function (array) {
-  var currentIndex = randomizeNumber(0, array.length);
-  return array[currentIndex];
-};
-
-
-// перемешать массив и задать рандомную длину
-var cutArrayRandomly = function (array) {
-  var clonedItems = array.slice(0);
-  var shuffledItems = [];
-  var arrayLength = randomizeNumber(1, clonedItems.length);
-  for (var i = 0; i < arrayLength; i++) {
-    shuffledItems.push(pickArrayItem(clonedItems));
-  }
-  return shuffledItems;
-};
-
-
-// сгенерировать уникальный путь к аватару
-generateAvatarIndexes(8);
-var generateAvatarPath = function () {
-  return 'img/avatars/user' + pickArrayItem(avatarIndexes) + '.png';
-};
-
-
-// сгенерировать координаты X и Y
-var adsCoordinates = [];
-var generateCoordinates = function () {
-  adsCoordinates[0] = randomizeNumber(300, 900);
-  adsCoordinates[1] = randomizeNumber(100, 500);
-  return adsCoordinates;
-};
-
-
-// сгенерировать массив из 8 объявлений
-var ads = [];
-for (var n = 0; n < 8; n++) {
-  generateCoordinates();
-  ads.push({
-    'author': {
-      'avatar': generateAvatarPath()
-    },
-
-    'offer': {
-      'title': pickArrayItem(OFFER_TITLES),
-      'address': adsCoordinates[0] + ', ' + adsCoordinates[1],
-      'price': randomizeNumber(1000, 1000000),
-      'type': pickAnyArrayItem(OFFER_TYPE),
-      'rooms': randomizeNumber(1, 5),
-      'guests': randomizeNumber(1, 7),
-      'checkin': pickAnyArrayItem(OFFER_CHECK_TIME),
-      'checkout': pickAnyArrayItem(OFFER_CHECK_TIME),
-      'features': cutArrayRandomly(OFFER_FEATURES),
-      'description': '',
-      'photos': []
-    },
-
-    'location': {
-      'x': adsCoordinates[0],
-      'y': adsCoordinates[1]
-    }
-  });
-}
-
-
-// -----------------------------------------------------------
-// СОЗДАТЬ ПИНЫ
-// -----------------------------------------------------------
-
-// темплейт пина с аватаром
-var pinTemplate = document.querySelector('template').content.querySelector('.map__pin');
-
-// блок для складывания пинов
-var pinsSection = document.querySelector('.map__pins');
-
-
-// задать пинам параметры из сгенерированных объектов
-var pinRad = 23;
-var pinArrowHeight = 18;
-var createPin = function (array, index) {
-  var pinElement = pinTemplate.cloneNode(true);
-
-  // базовая точка пина - это центр его окружности, в то время, как пин должен указывать на координаты не своим центром, а концом своей "иголки"
-  // поправка (y - (pinRad + pinArrowHeight)) учитывает расположение базовой точки и как-бы смещает ее на наконечник "иголки"
-  // горизоатальная поправка не требуется, т.к. базовая точка находится на вертикальной оси пина
-  pinElement.style.left = (array[index].location.x) + 'px';
-  pinElement.style.top = (array[index].location.y - (pinRad + pinArrowHeight)) + 'px';
-  pinElement.setAttribute('id', index);
-  pinElement.querySelector('img').setAttribute('src', array[index].author.avatar);
-  return pinElement;
-};
-
-
-// записать вновь добавленные пины во fragment
-var fragment = document.createDocumentFragment();
-for (var j = 0; j < ads.length; j++) {
-  fragment.appendChild(createPin(ads, j));
-}
-
-// добавить fragment с пинами в разметку
-var renderPins = function () {
-  pinsSection.appendChild(fragment);
-};
-
-
-// -----------------------------------------------------------
-// ВЫВЕСТИ КАРТОЧКУ С ОБЪЯВЛЕНИЕМ
-// -----------------------------------------------------------
-
-// перевести тип жилья на русский
-var translateOfferType = function (entity) {
-  for (var i = 0; i < 3; i++) {
-    if (entity.offer.type === OFFER_TYPE[i]) {
-      break;
-    }
-  }
-  return OFFER_TYPE_RUS[i];
-};
-
-
-// вывести списко features в объявление
-var generateFeaturesMarkup = function (entity) {
-  var featuresMarkup = '';
-  for (var i = 0; i < entity.offer.features.length; i++) {
-    featuresMarkup += ('<li class="feature feature--' + entity.offer.features[i] + '"></li>');
-  }
-  return featuresMarkup;
-};
-
-
-// темплейт пина с аватаром
-var advertTemplate = document.querySelector('template').content.querySelector('.map__card');
-
-// блок для складывания пинов
-var advertSibling = document.querySelector('.map__filters-container');
-var map = document.querySelector('.map');
-
-
-// задать попапу параметры из объекта
-var createAdvert = function (entity) {
-  var advertElement = advertTemplate.cloneNode(true);
-  advertElement.querySelector('h3').textContent = entity.offer.title;
-  advertElement.querySelector('p small').textContent = entity.offer.address;
-  advertElement.querySelector('.popup__price').innerHTML = entity.offer.price + ' &#x20bd;/ночь';
-  advertElement.querySelector('h4').textContent = translateOfferType(entity);
-  advertElement.querySelector('p:nth-of-type(3)').textContent = entity.offer.rooms + ' комнаты для ' + entity.offer.guests + ' гостей';
-  advertElement.querySelector('p:nth-of-type(4)').textContent = 'Заезд после ' + entity.offer.checkin + ', выезд до ' + entity.offer.checkout;
-  advertElement.querySelector('.popup__features').innerHTML = generateFeaturesMarkup(entity);
-  advertElement.querySelector('p:nth-of-type(5)').textContent = entity.offer.description;
-  advertElement.querySelector('.popup__avatar').setAttribute('src', entity.author.avatar);
-  return advertElement;
-};
-
-
-// добавить объявление в разметку
-var renderAdvert = function (entity) {
-  map.insertBefore(createAdvert(ads[entity]), advertSibling);
-};
-
 // ------------------------------------------------------------
 // ОБРАБОТЧИКИ СОБЫТИЙ
 // ------------------------------------------------------------
 
 
-// var genericElements = {
-//   mapCard: document.querySelector('.map__card')
-// };
+(function () {
+
+  var noticeForm = document.querySelector('.notice__form');
+
+  window.data.generateAds();
+
+  var activatePage = function () {
+
+    // убрать fade
+    window.global.map.classList.remove('map--faded');
+
+    // активировать форму
+    noticeForm.classList.remove('notice__form--disabled');
+
+    // убрать с инпутов класс disabled
+    window.global.modifyClassForEach(window.global.fieldsets, 'remove', 'disabled');
+
+    // создать пины и отрисовать их
+    window.pin.renderPins();
+    makePinsClickable();
+  };
 
 
-var noticeForm = document.querySelector('.notice__form');
-var mapPinMain = document.querySelector('.map__pin--main');
-var fieldsets = document.querySelectorAll('fieldset');
+  window.global.mapPinMain.setAttribute('tabindex', '1');
 
 
-// получить ID элемента
-var getElementId = function (element) {
-  return element.getAttribute('id');
-};
+  // обработчик по событию click и mouseup
+  window.global.mapPinMain.addEventListener('click', activatePage);
+  window.global.mapPinMain.addEventListener('mouseup', activatePage);
 
 
-// добавить или удалить класс у группы элементов, forEach
-var modifyClassForEach = function (elementsArray, mod, className) {
-  elementsArray.forEach(function (el) {
-    if (mod === 'remove') {
-      el.classList.remove(className);
-    } else if (mod === 'add') {
-      el.classList.add(className);
+  var mapCard = document.querySelector('.map__card');
+
+
+  // обработчик на крестик по Enter
+  var onEscDown = function (evt) {
+    var activePin = window.global.map.querySelector('.map__pin--active');
+    if (evt.keyCode === window.global.ESC_KEYCODE) {
+      mapCard.remove();
+      activePin.classList.remove('map__pin--active');
+
+      document.removeEventListener('keydown', onEscDown);
     }
-  });
-};
+  };
 
 
-// сделать все инпуты неактивными disabled
-modifyClassForEach(fieldsets, 'add', 'disabled');
+  // обратиться к каждому пину
+  var makePinsClickable = function () {
 
+    // переменная-селектор для псевдопинов (созданные из js)
+    var mapPinItems = window.global.pinsSection.querySelectorAll('.map__pin:not(.map__pin--main)');
 
-var activatePage = function () {
+    mapPinItems.forEach(function (el) {
 
-  // убрать fade
-  map.classList.remove('map--faded');
+      el.setAttribute('tabindex', '1');
 
-  // активировать форму
-  noticeForm.classList.remove('notice__form--disabled');
+      // поставить обработчики на пины
+      el.addEventListener('click', function () {
 
-  // убрать с инпутов класс disabled
-  modifyClassForEach(fieldsets, 'remove', 'disabled');
+        // предварительно выключить везде active
+        window.global.modifyClassForEach(mapPinItems, 'remove', 'map__pin--active');
 
-  // создать пины и отрисовать их
-  renderPins();
-  makePinsClickable();
-};
+        // включить active
+        el.classList.add('map__pin--active');
 
-
-mapPinMain.setAttribute('tabindex', '1');
-
-
-// обработчик по событию click и mouseup
-mapPinMain.addEventListener('click', activatePage);
-mapPinMain.addEventListener('mouseup', activatePage);
-
-
-var mapCard = document.querySelector('.map__card');
-
-
-// обработчик на крестик по Enter
-var onEscDown = function (evt) {
-  var activePin = map.querySelector('.map__pin--active');
-  if (evt.keyCode === ESC_KEYCODE) {
-    mapCard.remove();
-    activePin.classList.remove('map__pin--active');
-
-    document.removeEventListener('keydown', onEscDown);
-  }
-};
-
-
-// обратиться к каждому пину
-var makePinsClickable = function () {
-
-  // переменная-селектор для псевдопинов (созданные из js)
-  var mapPinItems = pinsSection.querySelectorAll('.map__pin:not(.map__pin--main)');
-
-  mapPinItems.forEach(function (el) {
-
-    el.setAttribute('tabindex', '1');
-
-    // поставить обработчики на пины
-    el.addEventListener('click', function () {
-
-      // предварительно выключить везде active
-      modifyClassForEach(mapPinItems, 'remove', 'map__pin--active');
-
-      // включить active
-      el.classList.add('map__pin--active');
-
-      // убрать старое объявление
-      mapCard = document.querySelector('.map__card');
-      if (mapCard) {
-        mapCard.remove();
-      }
-
-
-      var renderCardWithListeners = function () {
-
-        // добавить новое объявление
-        renderAdvert(getElementId(el));
-
-        // объявить крестик для закрытия
-        var popupClose = document.querySelector('.popup__close');
-        // переобъявить card, т.к. прошлая была удалена
+        // убрать старое объявление
         mapCard = document.querySelector('.map__card');
-
-        // обработчик на крестик по клику
-        popupClose.addEventListener('click', function () {
+        if (mapCard) {
           mapCard.remove();
-          el.classList.remove('map__pin--active');
-        });
-
-        document.addEventListener('keydown', onEscDown);
-      };
-
-      renderCardWithListeners();
-    });
-  });
-};
-
-
-// ---------------------------------------------
-// ВАЛИДАЦИ ФОРМЫ
-// ---------------------------------------------
-
-var addressField = document.querySelector('#address');
-var addressY = window.getComputedStyle(mapPinMain, null).getPropertyValue('top');
-var addressX = window.getComputedStyle(mapPinMain, null).getPropertyValue('left');
-
-// задать предварительные значения для адреса
-addressField.setAttribute('value', addressX + ' , ' + addressY);
-
-
-var checkinTime = document.querySelector('#timein');
-var checkoutTime = document.querySelector('#timeout');
-
-
-// задать зависимости checkin / checkout друг от друга
-var onCheckFocus = function (subject) {
-  subject.addEventListener('focus', function () {
-    var target;
-    if (subject === checkinTime) {
-      target = checkoutTime;
-    } else if (subject === checkoutTime) {
-      target = checkinTime;
-    }
-    subject.addEventListener('change', function () {
-      for (var i = 0; i < subject.options.length; i++) {
-        var option = subject.options[i];
-        if (option.selected) {
-          target.selectedIndex = i;
         }
-      }
+
+
+        var renderCardWithListeners = function () {
+
+          // добавить новое объявление
+          window.card.renderAdvert(window.global.getElementId(el));
+
+          // объявить крестик для закрытия
+          var popupClose = document.querySelector('.popup__close');
+          // переобъявить card, т.к. прошлая была удалена
+          mapCard = document.querySelector('.map__card');
+
+          // обработчик на крестик по клику
+          popupClose.addEventListener('click', function () {
+            mapCard.remove();
+            el.classList.remove('map__pin--active');
+          });
+
+          document.addEventListener('keydown', onEscDown);
+        };
+
+        renderCardWithListeners();
+      });
     });
-  });
-};
+  };
 
-onCheckFocus(checkinTime);
-onCheckFocus(checkoutTime);
+})();
 
 
-// -------------------------------------------------------
-// менять минимальную цену в зависмости от типа жилья
-var entityType = document.querySelector('#type');
-var price = document.querySelector('#price');
-
-
-// список возможных зависимостей - тип жилья: цена
-var typeMinPrice = {
-  'bungalo': 0,
-  'flat': '1000',
-  'house': '5000',
-  'palace': '10000'
-};
-
-
-// функция изменения атрибута min для price
-var parsePrices = function (arr) {
-  price.setAttribute('min', typeMinPrice[arr]);
-};
-
-
-// изменить атрибут min для price одныжды в начале
-var currentTypeValue = entityType.options[entityType.selectedIndex].value;
-parsePrices(currentTypeValue);
-
-
-// функция-обработчик
-var changeMinPrice = function (e) {
-
-  // ссылка на Value элемента, на котором зафиксировано событие
-  var currentTypeDependency = e.target.value;
-  parsePrices(currentTypeDependency);
-};
-
-// установка обработчика на поле выбора опции типа жилья
-entityType.addEventListener('change', changeMinPrice);
-
-
-// -------------------------------------------------------
-// менять вместимость в зависимости от количества комнат
-var roomNumber = document.querySelector('#room_number');
-var capacity = document.querySelector('#capacity');
-
-
-// объект со списком доступных зависимостей Rooms: Capacity
-var roomCapacity = {
-  100: ['0'],
-  1: ['1'],
-  2: ['1', '2'],
-  3: ['1', '2', '3']
-};
-
-
-// перебор всех опций Capacity и выключение не релевантных
-var parseCapacities = function (arr) {
-  for (var i = 0; i < capacity.options.length; i++) {
-
-    // обращение к текущей опции capacity в цикле
-    var capacityCurrentOption = capacity.options[i];
-
-    // если значение capacity, выбранное циклом, содержится в выбранном currentCapacitySet, то ...
-    if (arr.indexOf(capacityCurrentOption.value) > -1) {
-      capacityCurrentOption.disabled = false;
-      capacityCurrentOption.selected = true;
-    } else {
-      capacityCurrentOption.disabled = true;
-    }
-  }
-};
-
-
-// отсылка в выбранному значению Rooms
-var currentRoomValue = roomNumber.options[roomNumber.selectedIndex].value;
-
-// изменить capacity зависимо от Rooms только однажды в начале
-parseCapacities(roomCapacity[currentRoomValue]);
-
-
-// функция обработчик - измениять capacity зависимо от rooms
-var changeCapacity = function (e) {
-
-  // отсылка к объекту с массивами - вместимость каждой комнаты
-  var currentCapacitySet = roomCapacity[e.target.value];
-  parseCapacities(currentCapacitySet);
-};
-
-
-// включение обработчика на изменение select -> Rooms
-roomNumber.addEventListener('change', changeCapacity);
-
-
-// валидировать данные из формы
-var inputs = document.querySelectorAll('input');
-var submit = document.querySelector('.form__submit');
-
-
-var validateForm = function () {
-  submit.addEventListener('click', function () {
-    for (var i = 0; i < inputs.length; i++) {
-      var input = inputs[i];
-      if (input.checkValidity() === false) {
-        input.style.borderColor = 'red';
-      } else if (input.checkValidity() === true) {
-        input.style.borderColor = '#d9d9d3';
-      }
-    }
-  });
-};
-
-validateForm();

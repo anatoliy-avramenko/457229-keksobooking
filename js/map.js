@@ -7,7 +7,10 @@
 
 (function () {
 
+  var MAIN_PIN_WIDTH = 62;
   var noticeForm = document.querySelector('.notice__form');
+  var mapPinMain = document.querySelector('.map__pin--main');
+  var pinsSection = document.querySelector('.map__pins');
 
   window.data.generateAds();
 
@@ -25,15 +28,17 @@
     // создать пины и отрисовать их
     window.pin.renderPins();
     makePinsClickable();
+
+    // ВЫЗОВ ЭТОЙ ФУНКЦИИ ПРЕПЯТСТВУЕТ ПЕРЕТЯГИВАНИЮ
+    window.form.trackAddress();
   };
 
 
   window.global.mapPinMain.setAttribute('tabindex', '1');
 
 
-  // обработчик по событию click и mouseup
-  window.global.mapPinMain.addEventListener('click', activatePage);
-  window.global.mapPinMain.addEventListener('mouseup', activatePage);
+  // // обработчик по событию mouseup
+  // window.global.mapPinMain.addEventListener('mouseup', activatePage);
 
 
   var mapCard = document.querySelector('.map__card');
@@ -100,6 +105,32 @@
       });
     });
   };
+
+
+  // -------------
+  // draggable пин
+  // -------------
+
+  pinsSection.addEventListener('dragstart', function (evt) {
+    if (evt.target.matches('.map__pin--main')) {
+      // window.form.trackAddress();
+    }
+  });
+
+  pinsSection.addEventListener('dragover', function (evt) {
+    evt.preventDefault();
+    return false;
+  });
+
+  pinsSection.addEventListener('drop', function (evt) {
+    evt.preventDefault();
+    mapPinMain.style.top = (evt.clientY) + 'px';
+    mapPinMain.style.left = (evt.clientX - MAIN_PIN_WIDTH * 1.5) + 'px';
+
+    // MOUSUP НЕ СРАБАТЫВАЕТ ПОСЛЕ ПЕРЕТЯГИВАНИЯ
+    window.global.mapPinMain.addEventListener('mouseup', activatePage);
+  });
+
 
 })();
 

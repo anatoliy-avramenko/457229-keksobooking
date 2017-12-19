@@ -136,20 +136,22 @@
         y: moveEvt.clientY
       };
 
-      mapPinMain.style.top = (mapPinMain.offsetTop - shift.y) + 'px';
-      mapPinMain.style.left = (mapPinMain.offsetLeft - shift.x) + 'px';
+      if (mapPinMain.offsetTop - shift.y > 100 && mapPinMain.offsetTop - shift.y < 500) {
+        mapPinMain.style.top = (mapPinMain.offsetTop - shift.y) + 'px';
+        mapPinMain.style.left = (mapPinMain.offsetLeft - shift.x) + 'px';
+      }
     };
 
     var onMouseUp = function (upEvt) {
       upEvt.preventDefault();
 
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
+      pinsSection.removeEventListener('mousemove', onMouseMove);
+      pinsSection.removeEventListener('mouseup', onMouseUp);
       activatePage();
     };
 
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
+    pinsSection.addEventListener('mousemove', onMouseMove);
+    pinsSection.addEventListener('mouseup', onMouseUp);
 
   });
 

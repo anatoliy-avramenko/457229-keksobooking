@@ -6,15 +6,8 @@
 
 (function () {
 
-  var addressField = document.querySelector('#address');
-  // var addressY = window.getComputedStyle(window.global.mapPinMain, null).getPropertyValue('top');
-  // var addressX = window.getComputedStyle(window.global.mapPinMain, null).getPropertyValue('left');
-
   // сделать все инпуты неактивными disabled
   window.global.modifyClassForEach(window.global.fieldsets, 'add', 'disabled');
-
-  // задать предварительные значения для адреса
-  // addressField.setAttribute('value', (+addressX) + ' , ' + (+addressY));
 
 
   var checkinTime = document.querySelector('#timein');
@@ -155,31 +148,6 @@
   };
 
   validateForm();
-
-
-  window.form = {
-
-    trackAddress: function () {
-      window.global.mapPinMain.addEventListener('mousedown', function (evt) {
-
-        evt.preventDefault();
-
-        var onMouseMove = function (moveEvt) {
-          moveEvt.preventDefault();
-          addressField.setAttribute('value', moveEvt.clientX + ' , ' + moveEvt.clientY);
-          window.global.pinsSection.addEventListener('mouseup', onMouseUp);
-        };
-
-        var onMouseUp = function (upEvt) {
-          upEvt.preventDefault();
-          window.global.pinsSection.removeEventListener('mousemove', onMouseMove);
-          window.global.pinsSection.removeEventListener('mouseup', onMouseUp);
-        };
-
-        window.global.pinsSection.addEventListener('mousemove', onMouseMove);
-      });
-    }
-  };
 
 })();
 

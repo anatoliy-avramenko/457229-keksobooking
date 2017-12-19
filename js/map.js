@@ -30,7 +30,9 @@
     makePinsClickable();
 
     // ВЫЗОВ ЭТОЙ ФУНКЦИИ ПРЕПЯТСТВУЕТ ПЕРЕТЯГИВАНИЮ
-    window.form.trackAddress();
+    // window.form.trackAddress();
+
+    window.global.mapPinMain.removeEventListener('mouseup', activatePage);
   };
 
 
@@ -51,7 +53,7 @@
       mapCard.remove();
       activePin.classList.remove('map__pin--active');
 
-      document.removeEventListener('keydown', onEscDown);
+      // document.removeEventListener('keydown', onEscDown);
     }
   };
 
@@ -111,25 +113,68 @@
   // draggable пин
   // -------------
 
-  pinsSection.addEventListener('dragstart', function (evt) {
-    if (evt.target.matches('.map__pin--main')) {
-      // window.form.trackAddress();
-    }
-  });
+  mapPinMain.addEventListener('mousedown', function (evt) {
 
-  pinsSection.addEventListener('dragover', function (evt) {
     evt.preventDefault();
-    return false;
+
+    var startCoords = {
+      x: evt.clientX,
+      y: evt.clientY
+    };
+
+
+    var onMouseMove = function (moveEvt) {
+      moveEvt.preventDefault();
+
+      var shift = {
+        x: startCoords.x - moveEvt.clientX,
+        y: startCoords.y - moveEvt.clientY
+      };
+
+      startCoords = {
+        x: moveEvt.clientX,
+        y: moveEvt.clientY
+      };
+
+      mapPinMain.style.top = (mapPinMain.offsetTop - shift.y) + 'px';
+      mapPinMain.style.left = (mapPinMain.offsetLeft - shift.x) + 'px';
+    };
+
+    var onMouseUp = function (upEvt) {
+      upEvt.preventDefault();
+
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      activatePage();
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+
   });
 
-  pinsSection.addEventListener('drop', function (evt) {
-    evt.preventDefault();
-    mapPinMain.style.top = (evt.clientY) + 'px';
-    mapPinMain.style.left = (evt.clientX - MAIN_PIN_WIDTH * 1.5) + 'px';
 
-    // MOUSUP НЕ СРАБАТЫВАЕТ ПОСЛЕ ПЕРЕТЯГИВАНИЯ
-    window.global.mapPinMain.addEventListener('mouseup', activatePage);
-  });
+
+
+  // pinsSection.addEventListener('dragstart', function (evt) {
+  //   if (evt.target.matches('.map__pin--main')) {
+  //     // window.form.trackAddress();
+  //   }
+  // });
+  //
+  // pinsSection.addEventListener('dragover', function (evt) {
+  //   evt.preventDefault();
+  //   return false;
+  // });
+  //
+  // pinsSection.addEventListener('drop', function (evt) {
+  //   // evt.preventDefault();
+  //   mapPinMain.style.top = (evt.clientY) + 'px';
+  //   mapPinMain.style.left = (evt.clientX - MAIN_PIN_WIDTH * 1.5) + 'px';
+  //
+  //   // MOUSEUP НЕ СРАБАТЫВАЕТ ПОСЛЕ ПЕРЕТЯГИВАНИЯ
+  //   window.global.mapPinMain.addEventListener('mouseup', activatePage);
+  // });
 
 
 })();

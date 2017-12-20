@@ -39,6 +39,7 @@
 
 
   // -------------------------------------------------------
+  // -------------------------------------------------------
   // менять минимальную цену в зависмости от типа жилья
   var entityType = document.querySelector('#type');
   var price = document.querySelector('#price');
@@ -46,7 +47,7 @@
 
   // список возможных зависимостей - тип жилья: цена
   var typeMinPrice = {
-    'bungalo': 0,
+    'bungalo': '0',
     'flat': '1000',
     'house': '5000',
     'palace': '10000'
@@ -55,7 +56,7 @@
 
   // функция изменения атрибута min для price
   var parsePrices = function (arr) {
-    price.setAttribute('min', typeMinPrice[arr]);
+    price.setAttribute('min', arr);
   };
 
 
@@ -63,19 +64,10 @@
   var currentTypeValue = entityType.options[entityType.selectedIndex].value;
   parsePrices(currentTypeValue);
 
-
-  // функция-обработчик
-  var changeMinPrice = function (e) {
-
-    // ссылка на Value элемента, на котором зафиксировано событие
-    var currentTypeDependency = e.target.value;
-    parsePrices(currentTypeDependency);
-  };
-
-  // установка обработчика на поле выбора опции типа жилья
-  entityType.addEventListener('change', changeMinPrice);
+  window.synchronizeFields(entityType, price, typeMinPrice, parsePrices);
 
 
+  // -------------------------------------------------------
   // -------------------------------------------------------
   // менять вместимость в зависимости от количества комнат
   var roomNumber = document.querySelector('#room_number');
@@ -115,20 +107,11 @@
   // изменить capacity зависимо от Rooms только однажды в начале
   parseCapacities(roomCapacity[currentRoomValue]);
 
-
-  // функция обработчик - измениять capacity зависимо от rooms
-  var changeCapacity = function (e) {
-
-    // отсылка к объекту с массивами - вместимость каждой комнаты
-    var currentCapacitySet = roomCapacity[e.target.value];
-    parseCapacities(currentCapacitySet);
-  };
+  window.synchronizeFields(roomNumber, capacity, roomCapacity, parseCapacities);
 
 
-  // включение обработчика на изменение select -> Rooms
-  roomNumber.addEventListener('change', changeCapacity);
-
-
+  // -------------------------------------------------------
+  // -------------------------------------------------------
   // валидировать данные из формы
   var inputs = document.querySelectorAll('input');
   var submit = document.querySelector('.form__submit');

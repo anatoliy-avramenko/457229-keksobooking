@@ -33,18 +33,11 @@
     window.pin.renderPins();
     makePinsClickable();
 
-    // ВЫЗОВ ЭТОЙ ФУНКЦИИ ПРЕПЯТСТВУЕТ ПЕРЕТЯГИВАНИЮ
-    // window.form.trackAddress();
-
     window.global.mapPinMain.removeEventListener('mouseup', activatePage);
   };
 
 
   window.global.mapPinMain.setAttribute('tabindex', '1');
-
-
-  // // обработчик по событию mouseup
-  // window.global.mapPinMain.addEventListener('mouseup', activatePage);
 
 
   var mapCard = document.querySelector('.map__card');
@@ -57,7 +50,7 @@
       mapCard.remove();
       activePin.classList.remove('map__pin--active');
 
-      // document.removeEventListener('keydown', onEscDown);
+      document.removeEventListener('keydown', onEscDown);
     }
   };
 
@@ -167,14 +160,12 @@
       var pinArrowY = newCoords.y + MAIN_PIN_RAD + MAIN_PIN_ARROW;
       addressField.setAttribute('value', 'x: {{' + newCoords.x + '}}, y: {{' + pinArrowY + '}}');
 
-      // вызов обработчика по mouseup
-      pinsSection.addEventListener('mouseup', onMouseUp);
     };
 
 
     // функция обработчика по mouseup
-    var onMouseUp = function (upEvt) {
-      upEvt.preventDefault();
+    var onMouseUp = function () {
+      // upEvt.preventDefault();
 
       // удаляет обработчик по движению мыши, по отпусканию кнопки, и активирует страницу
       pinsSection.removeEventListener('mousemove', onMouseMove);
@@ -182,6 +173,8 @@
       activatePage();
     };
 
+
+    pinsSection.addEventListener('mouseup', onMouseUp);
 
     // вызов обработчика по движению мыши
     pinsSection.addEventListener('mousemove', onMouseMove);

@@ -132,5 +132,14 @@
 
   validateForm();
 
+  var form = document.querySelector('.notice__form');
+
+  form.addEventListener('submit', function (evt) {
+    // window.upload(new FormData(form), function (response) {
+    // });
+    evt.preventDefault();
+  });
+
+
 })();
 

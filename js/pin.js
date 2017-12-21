@@ -9,7 +9,6 @@
   // темплейт пина с аватаром
   var pinTemplate = document.querySelector('template').content.querySelector('.map__pin');
 
-
   // задать пинам параметры из сгенерированных объектов
   var pinRad = 23;
   var pinArrowHeight = 18;

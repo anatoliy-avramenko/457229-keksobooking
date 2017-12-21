@@ -18,6 +18,8 @@
 
   window.data.generateAds();
 
+  console.log(window.data.ads2);
+
   var activatePage = function () {
 
     // убрать fade

@@ -16,9 +16,8 @@
   var pinsSection = document.querySelector('.map__pins');
   var addressField = document.querySelector('#address');
 
-  window.data.generateAds();
+  // window.data.generateAds();
 
-  console.log(window.data.ads2);
 
   var activatePage = function () {
 

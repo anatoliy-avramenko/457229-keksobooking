@@ -59,7 +59,7 @@
 
     // добавить объявление в разметку
     renderAdvert: function (entity) {
-      window.global.map.insertBefore(createAdvert(window.data.ads[entity]), advertSibling);
+      window.global.map.insertBefore(createAdvert(entity), advertSibling);
     }
 
   };

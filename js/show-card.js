@@ -18,7 +18,10 @@
   window.showCard = function (el) {
 
     // добавить новое объявление
-    window.card.renderAdvert(window.global.getElementId(el));
+    // window.card.renderAdvert(window.global.getElementId(el));
+
+
+    window.card.renderAdvert(el.card);
 
     // объявить крестик для закрытия
     var popupClose = document.querySelector('.popup__close');
